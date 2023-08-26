@@ -1,0 +1,220 @@
+<?php
+
+namespace App\Http\Controllers\WorkflowMaster;
+
+use App\Http\Controllers\Controller;
+use App\Models\Auth\User;
+use App\Models\Workflows\WfWardUser;
+use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+
+class WardUserController extends Controller
+{
+    //create WardUser
+    public function createWardUser(Request $req)
+    {
+
+        $validated = Validator::make(
+            $req->all(),
+            [
+                'userId' => 'required',
+                'wardList' => 'required|array',
+                // 'permissionStatus'=>'required
+            ]
+        );
+        if ($validated->fails()) {
+            return validationError($validated);
+        }
+        try {
+            $userId           = $req->userId;
+            $wardList         = $req->wardList;
+
+            collect($wardList)->map(function ($item) use ($userId) {
+
+                $mWfWardUser = new WfWardUser();
+                $checkExisting = $mWfWardUser::where('user_id', $userId)
+                    ->where('ward_id', $item['wardId'])
+                    ->first();
+
+                if ($item['permissionStatus'] == 0)
+                    $isSuspended = true;
+
+                if ($item['permissionStatus'] == 1)
+                    $isSuspended = false;
+
+                if ($checkExisting) {
+
+                    $req = new Request([
+                        'id' => $checkExisting->id,
+                        'userId' => $userId,
+                        'wardId' => $item['wardId'],
+                        'isSuspended' => $isSuspended,
+                    ]);
+
+                    $mWfWardUser->updateWardUser($req);
+                } else {
+                    $req = new Request([
+                        'userId' => $userId,
+                        'wardId' => $item['wardId'],
+                        'isSuspended' => $isSuspended,
+                    ]);
+                    $mWfWardUser->addWardUser($req);
+                }
+            });
+
+            // $checkExisting = WfWardUser::where('user_id', $req->userId)
+            //     ->where('ward_id', $req->wardId)
+            //     ->first();
+
+            // if ($checkExisting)
+            //     throw new Exception("User Exist");
+
+            // $mWfWardUser = new WfWardUser();
+            // $mWfWardUser->addWardUser($req);
+
+            return responseMsg(true, "Successfully Saved", "");
+        } catch (Exception $e) {
+            return responseMsg(true,  $e->getMessage(), "");
+        }
+    }
+
+    //update WardUser
+    public function updateWardUser(Request $req)
+    {
+        try {
+            $update = new WfWardUser();
+            $list  = $update->updateWardUser($req);
+
+            return responseMsg(true, "Successfully Updated", $list);
+        } catch (Exception $e) {
+            return response()->json(false, $e->getMessage());
+        }
+    }
+
+    //WardUser list by id
+    public function WardUserbyId(Request $req)
+    {
+        try {
+
+            $mWfWardUser = new WfWardUser();
+            $list  = $mWfWardUser->listbyId($req);
+
+            return responseMsg(true, "WardUser List", $list);
+        } catch (Exception $e) {
+            return response()->json(false, $e->getMessage());
+        }
+    }
+
+    //all WardUser list
+    public function getAllWardUser(Request $req)
+    {
+        try {
+            $perPage =  $req->perPage ?? 10;
+            $mWfWardUser = new WfWardUser();
+            $WardUsers = $mWfWardUser->listWardUser()->paginate(10);
+
+            return responseMsg(true, "All WardUser List", $WardUsers);
+        } catch (Exception $e) {
+            return responseMsg(true,  $e->getMessage(), '');
+        }
+    }
+
+    //delete WardUser
+    public function deleteWardUser(Request $req)
+    {
+        try {
+            $delete = new WfWardUser();
+            $delete->deleteWardUser($req);
+
+            return responseMsg(true, "Data Deleted", '');
+        } catch (Exception $e) {
+            return response()->json($e, 400);
+        }
+    }
+
+
+    // TC List
+    public function tcList(Request $req)
+    {
+        $req->validate([
+            'wardId' => 'nullable',
+        ]);
+        try {
+            $ulbId =  authUser()->ulb_id;
+            $TC = ['TC', 'TL'];
+
+            $data = User::select(
+                'users.id',
+                'name as user_name',
+                'user_type',
+            )
+                ->where('ulb_id', $ulbId)
+                ->whereIN('user_type', $TC)
+                ->get();
+
+            if ($req->wardId) {
+                $data = User::select(
+                    'users.id',
+                    'name as user_name',
+                    'user_type',
+                )
+                    ->join('wf_ward_users', 'wf_ward_users.user_id', 'users.id')
+                    ->where('ulb_id', $ulbId)
+                    ->where('ward_id', $req->wardId)
+                    ->whereIN('user_type', $TC)
+                    ->get();
+            }
+
+            return responseMsgs(true, "TC List", remove_null($data), "010201", "1.0", "", "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return response()->json($e, 400);
+        }
+    }
+
+    /**
+     * | 
+     */
+    public function wardByUserId(Request $req)
+    {
+        $validated = Validator::make(
+            $req->all(),
+            ['userId'     => 'required|int',]
+        );
+        if ($validated->fails()) {
+            return validationError($validated);
+        }
+        try {
+            $mWfWardUser = new WfWardUser();
+            $user = authUser();
+
+            $query = "select 
+                            ward.id,
+                            ward.ward_name,
+                            ward.old_ward_name,
+                            wu.user_id,
+                            case 
+                                when wu.user_id is null then false
+                                else
+                                    true  
+                            end as permission_status
+                    
+                        from ulb_ward_masters as ward
+                        left join (select * from wf_ward_users where user_id=$req->userId) as wu on wu.ward_id=ward.id
+                        where ward.ulb_id = $user->ulb_id
+                        and status=1
+                        order by ward.id";
+
+            $data = DB::select($query);
+
+            // $WardUsers = $mWfWardUser->listWardUser()
+            //     ->where('users.id', $req->userId)
+            //     ->get();
+
+            return responseMsg(true, "Ward List of User", $data);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "");
+        }
+    }
+}
