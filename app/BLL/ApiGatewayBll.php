@@ -94,7 +94,7 @@ class ApiGatewayBll
         else
             $apiResponse = $response['reason']->getMessage();            // Handle the error message as needed
 
-        return $apiResponse;
+        return json_decode($apiResponse,true);
     }
 
 
