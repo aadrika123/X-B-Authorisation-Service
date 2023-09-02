@@ -31,78 +31,72 @@ class ApiGatewayBll
      */
     public function getApiResponse($req)
     {
-            $client = new Client();
-            // Converting environmental variables to Services
-            $baseURLs = Config::get('constants.MICROSERVICES_APIS');
-            $services = json_decode($baseURLs, true);
-            // Sending to Microservices
-            $segments = explode('/', $req->path());
-            $service = $segments[1];
-            if (!array_key_exists($service, $services))
-                throw new Exception("Service Not Available");
-    
-            $url = $services[$service];
-            $ipAddress = getClientIpAddress();
-    
-            $authFields = [
+        $client = new Client();
+        // Converting environmental variables to Services
+        $baseURLs = Config::get('constants.MICROSERVICES_APIS');
+        $services = json_decode($baseURLs, true);
+        // Sending to Microservices
+        $segments = explode('/', $req->path());
+        $service = $segments[1];
+        if (!array_key_exists($service, $services))
+            throw new Exception("Service Not Available");
+
+        $url = $services[$service];
+        $ipAddress = getClientIpAddress();
+
+        $authFields = [
+            'token' => $req->bearerToken(),
+            'ipAddress' => $ipAddress
+        ];
+
+        if ($req->authRequired) {                           // Auth Required fields
+            $authFields = array_merge([
+                'auth' => authUser(),
                 'token' => $req->bearerToken(),
-                'ipAddress' => $ipAddress
-            ];
-    
-            if ($req->authRequired) {                           // Auth Required fields
-                $authFields = array_merge([
-                    'auth' => authUser(),
-                    'token' => $req->bearerToken(),
-                    'currentAccessToken' => $req->user()->currentAccessToken(),
-                    'apiToken' => $req->user()->currentAccessToken()->token
-                ]);
-            }
-    
-            $req = $req->merge($authFields);                    // Merging authenticated fields
-    
-            $method = $req->method();
-            $promises = [];
-            $asyncMethod = in_array($method, ['POST', 'post']) ? 'postAsync' : 'getAsync';
-    
-            if (isset($req->header()['content-type']) && preg_match('/multipart/i', $req->header()["content-type"][0]) && $_FILES) {
-                $promise = $client->$asyncMethod($url . $req->getRequestUri(), [                // for Multipart
-                    'multipart' => $this->prepareMultipartData($req),
+                'currentAccessToken' => $req->user()->currentAccessToken(),
+                'apiToken' => $req->user()->currentAccessToken()->token
+            ]);
+        }
+
+        $req = $req->merge($authFields);                    // Merging authenticated fields
+
+        $method = $req->method();
+        $promises = [];
+        $asyncMethod = in_array($method, ['POST', 'post']) ? 'postAsync' : 'getAsync';
+
+        if (isset($req->header()['content-type']) && preg_match('/multipart/i', $req->header()["content-type"][0]) && $_FILES) {
+            $promise = $client->$asyncMethod($url . $req->getRequestUri(), [                // for Multipart
+                'multipart' => $this->prepareMultipartData($req),
+                [
+                    'headers' => $req->header()                         // Attach all headers
+                ]
+            ]);
+        } else {
+            $promise = $client->$asyncMethod(
+                $url . $req->getRequestUri(),
+                [
+                    'json' => $req->all(),
                     [
                         'headers' => $req->header()                         // Attach all headers
                     ]
-                ]);
-            } else {
-                $promise = $client->$asyncMethod(
-                    $url . $req->getRequestUri(),
-                    [
-                        'json' => $req->all(),
-                        [
-                            'headers' => $req->header()                         // Attach all headers
-                        ]
-                    ]
-                );
-            }
-            // Create an async HTTP POST request
-            $promises[] = $promise;
-            // Wait for the promise to complete
-            $responses = Promise\Utils::settle($promises)->wait();
-            // Process the response
-            $response = $responses[0];
-    
-            // return ($req['auth']);
-            if ($response['state'] === Promise\PromiseInterface::FULFILLED)
-                {
-                    $apiResponse = $response['value']->getBody()->getContents();    // Process the response body as needed
-                return json_decode($apiResponse,true);
-                }
-            else
-                {
-                    $apiResponse = $response['reason']->getMessage();            // Handle the error message as needed
-                    throw new Exception($apiResponse);
-                    
-                }
-       
+                ]
+            );
+        }
+        // Create an async HTTP POST request
+        $promises[] = $promise;
+        // Wait for the promise to complete
+        $responses = Promise\Utils::settle($promises)->wait();
+        // Process the response
+        $response = $responses[0];
 
+        // return ($req['auth']);
+        if ($response['state'] === Promise\PromiseInterface::FULFILLED) {
+            $apiResponse = $response['value']->getBody()->getContents();    // Process the response body as needed
+            return json_decode($apiResponse, true);
+        } else {
+            $apiResponse = $response['reason']->getMessage();            // Handle the error message as needed
+            throw new Exception($apiResponse);
+        }
     }
 
 
