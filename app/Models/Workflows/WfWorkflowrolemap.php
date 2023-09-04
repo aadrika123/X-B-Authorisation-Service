@@ -193,6 +193,7 @@ class WfWorkflowrolemap extends Model
                     ->orWhereNotNull("wf_workflowrolemaps.serial_no");
             })
             ->orderBy('serial_no')
+            ->where('wf_workflowrolemaps.is_suspended', false)
             ->get();
     }
 
