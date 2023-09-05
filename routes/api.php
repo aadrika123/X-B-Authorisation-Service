@@ -92,6 +92,16 @@ Route::controller(ThirdPartyController::class)->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     /**
+     * | Api to Check if the User is authenticated or not
+     */
+    Route::post('/heartbeat', function () {                 // Heartbeat Api
+        return response()->json([
+            'status' => true,
+            'authenticated' => auth()->check()
+        ]);
+    });
+
+    /**
      * | Workflow Master CRUD operation
          Controller No : 01
      */
