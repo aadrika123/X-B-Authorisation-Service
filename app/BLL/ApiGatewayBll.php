@@ -89,7 +89,6 @@ class ApiGatewayBll
         // Process the response
         $response = $responses[0];
 
-        // return ($req['auth']);
         if ($response['state'] === Promise\PromiseInterface::FULFILLED) {
             $apiResponse = $response['value']->getBody()->getContents();    // Process the response body as needed
             return json_decode($apiResponse, true);
