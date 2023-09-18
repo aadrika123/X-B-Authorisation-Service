@@ -38,22 +38,20 @@ class CitizenController extends Controller
 
         try {
 
-            DB::beginTransaction();
             $mCitizen = new ActiveCitizen();
             $citizens = $mCitizen->getCitizenByMobile($request->mobile);
             if (isset($citizens))
                 return responseMsgs(false, "This Mobile No is Already Existing", "");
 
+            DB::beginTransaction();
             $id = $mCitizen->citizenRegister($mCitizen, $request);        //Citizen save in model
-
             $this->docUpload($request, $id);
 
             DB::commit();
-
-            return responseMsg(true, "Succesfully Registered", "");
+            return responseMsgs(true, 'Succesfully Registered', "", '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsg(false, $e->getMessage(), "");
             DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -153,16 +151,16 @@ class CitizenController extends Controller
                     $citizenInfo->save();
                     $userDetails['token'] = $token;
                     $key = 'last_activity_citizen_' . $citizenInfo->id;               // Set last activity key 
-                    return responseMsgs(true, 'You r logged in now', $userDetails, '', "1.0", "494ms", "POST", "");
+                    return responseMsgs(true, 'You r logged in now', $userDetails, '', "1.0", responseTime(), $req->getMethod(), $req->deviceId);
                 } else {
                     $msg = "Incorrect Password";
-                    return responseMsg(false, $msg, '');
+                    return responseMsgs(false, $msg, "", '', "1.0", responseTime(), $req->getMethod(), $req->deviceId);
                 }
             }
         }
         // Authentication Using Sql Database
         catch (Exception $e) {
-            return responseMsg(false, $e->getMessage(), "");
+            return responseMsgs(false, $e->getMessage(), "", '', "1.0", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -180,9 +178,7 @@ class CitizenController extends Controller
 
         $user->tokens()->delete();
 
-        return response()->json([
-            'message' => 'Successfully logged out',
-        ]);
+        return responseMsgs(true, 'Successfully logged out', "", '', "1.0", responseTime(), $req->getMethod(), $req->deviceId);
     }
 
     /**
@@ -193,9 +189,9 @@ class CitizenController extends Controller
         try {
             $citizen = ActiveCitizen::find($id);
 
-            return responseMsgs(true, "Citizen Details", $citizen, "", "", "", "POST", "");
+            return responseMsgs(true, "Citizen Details", $citizen,  '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "");
+            return responseMsgs(false, $e->getMessage(), "", '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -207,9 +203,9 @@ class CitizenController extends Controller
         try {
             $citizen = ActiveCitizen::get();
 
-            return responseMsgs(true, "Citizen Details", $citizen, "", "", "", "POST", "");
+            return responseMsgs(true, "Citizen Details", $citizen,  '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "");
+            return responseMsgs(false, $e->getMessage(), "", '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -238,10 +234,9 @@ class CitizenController extends Controller
             $citizen->save();
 
             $this->docUpload($request, $citizen->id);
-
-            return responseMsg(true, 'Successful Updated', "");
+            return responseMsgs(true, "Successful Updated", "",  '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsg(false, $e->getMessage(), "");
+            return responseMsg(false, $e->getMessage(), "",  '', "1.0", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -259,11 +254,11 @@ class CitizenController extends Controller
                 $citizen->password = Hash::make($request->newPassword);
                 $citizen->save();
 
-                return responseMsgs(true, 'Successfully Changed the Password', "", "", "02", ".ms", "POST", $request->deviceId);
+                return responseMsgs(true, 'Successfully Changed the Password', "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);
             }
-            throw new Exception("Old Password dosen't Match!");
+            throw new Exception("Old Password doesn't Match!");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "02", ".ms", "POST", $request->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -278,9 +273,9 @@ class CitizenController extends Controller
             $citizen->password = Hash::make($request->password);
             $citizen->save();
 
-            return responseMsgs(true, "Password changed!", "", "", "01", ".ms", "POST", $request->deviceId);
+            return responseMsgs(true, "Password changed!", "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", $request->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -299,9 +294,9 @@ class CitizenController extends Controller
             $details->armed_force_doc = (config('app.url') . '/' . $details->relative_path . $details->armed_force_doc);
             $details->profile_photo = (config('app.url') . '/' . $details->relative_path . $details->profile_photo);
 
-            return responseMsgs(true, "Citizen Details", $details, "", "01", responseTime(), "POST", $request->deviceId);
+            return responseMsgs(true, "Citizen Details", $details, "", "01", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "01", responseTime(), "POST", $request->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 }
