@@ -34,7 +34,6 @@ class ApiGatewayBll
         $client = new Client();
         // Converting environmental variables to Services
         $baseURLs = Config::get('constants.MICROSERVICES_APIS');
-        return $baseURLs;
         if (collect($baseURLs)->isEmpty())
             throw new Exception("Microservices Base Urls Not Configured");
         $services = json_decode($baseURLs, true);
