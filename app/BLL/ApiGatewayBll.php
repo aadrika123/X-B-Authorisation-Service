@@ -31,6 +31,7 @@ class ApiGatewayBll
      */
     public function getApiResponse($req)
     {
+        return "Test";
         $client = new Client();
         // Converting environmental variables to Services
         $baseURLs = Config::get('constants.MICROSERVICES_APIS');
