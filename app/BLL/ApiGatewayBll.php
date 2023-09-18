@@ -34,6 +34,8 @@ class ApiGatewayBll
         $client = new Client();
         // Converting environmental variables to Services
         $baseURLs = Config::get('constants.MICROSERVICES_APIS');
+        if (collect($baseURLs)->isEmpty())
+            throw new Exception("Microservices Base Urls Not Configured");
         $services = json_decode($baseURLs, true);
         // Sending to Microservices
         $segments = explode('/', $req->path());
@@ -89,7 +91,6 @@ class ApiGatewayBll
         // Process the response
         $response = $responses[0];
 
-        // return ($req['auth']);
         if ($response['state'] === Promise\PromiseInterface::FULFILLED) {
             $apiResponse = $response['value']->getBody()->getContents();    // Process the response body as needed
             return json_decode($apiResponse, true);
