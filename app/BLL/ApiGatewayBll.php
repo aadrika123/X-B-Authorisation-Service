@@ -37,6 +37,7 @@ class ApiGatewayBll
         if (collect($baseURLs)->isEmpty())
             throw new Exception("Microservices Base Urls Not Configured");
         $services = json_decode($baseURLs, true);
+        return $services;
         // Sending to Microservices
         $segments = explode('/', $req->path());
         $service = $segments[1];
