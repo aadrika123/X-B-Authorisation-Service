@@ -78,7 +78,7 @@ class CitizenController extends Controller
                 ]);
         }
 
-        if ($request->aadharDoc) {
+        if (isset($request->aadharDoc)) {
             $filename = 'aadharDoc';
             $document = $request->aadharDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
