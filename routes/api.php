@@ -460,6 +460,9 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::post("grievance/auth/verify-otp", "unAuthApis");
         Route::post("grievance/register-grievance", "unAuthApis");
         Route::post("grievance/auth/get-grievance", "unAuthApis");
+        
+        # Municipal Rental UnAuth Api
+        Route::match(["get",'post'],"market/rental/shop-payment-reciept/{tranId}", "unAuthApis");
     });
 });
 
