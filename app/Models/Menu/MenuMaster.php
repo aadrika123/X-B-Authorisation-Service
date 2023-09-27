@@ -40,7 +40,7 @@ class MenuMaster extends Model
     {
         return MenuMaster::select('menu_masters.*', 'wf_workflows.alt_name as workflow_name')
             ->leftjoin('wf_workflows', 'wf_workflows.id', 'menu_masters.workflow_id')
-            // ->where('is_deleted', false)
+            ->where('is_deleted', false)
             ->where('menu_masters.id', $id)
             ->firstOrFail();
     }
