@@ -464,6 +464,7 @@ Route::middleware(['apiPermission'])->group(function () {
         # Municipal Rental UnAuth Api
         Route::match(["get", 'post'], "market/rental/shop-payment-reciept/{tranId}", "unAuthApis");
         Route::post("property/prop-payment-receipt", "unAuthApis");
+        Route::match(["get", 'post'], "market/rental/update-webhook-data", "unAuthApis");
     });
 });
 
