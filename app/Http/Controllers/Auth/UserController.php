@@ -58,7 +58,21 @@ class UserController extends Controller
             if ($user->suspended == true)
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
-                $token = $user->createToken('my-app-token')->plainTextToken;
+
+                $tockenDtl = $user->createToken('my-app-token');
+                $ipAddress = getClientIpAddress();#$req->userAgent()
+                $bousuerInfo = [
+                    "latitude"=>$req->browserInfo["latitude"]??"",
+                    "longitude"=>$req->browserInfo["longitude"]??"",
+                    "machine"=>$req->browserInfo["machine"]??"",
+                    "browser_name"=>$req->browserInfo["browserName"]??$req->userAgent(),
+                    "ip"=>$ipAddress??"",
+                ];
+                DB::table('personal_access_tokens')
+                    ->where('id', $tockenDtl->accessToken->id)
+                    ->update($bousuerInfo);
+
+                $token = $tockenDtl->plainTextToken;
                 $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
                 // if (empty(collect($menuRoleDetails)->first())) {
                 //     throw new Exception('User has No Roles!');
