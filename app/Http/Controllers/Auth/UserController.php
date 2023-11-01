@@ -415,7 +415,7 @@ class UserController extends Controller
             $data = User::select('name as user_name', 'id')
                 ->where('user_type', 'Employee')
                 ->where('ulb_id', $ulbId)
-                ->orderBy('id')
+                ->orderBy('name')
                 ->get();
 
             return responseMsgs(true, "List Employee", $data, "", "01", ".ms", "POST", "");
