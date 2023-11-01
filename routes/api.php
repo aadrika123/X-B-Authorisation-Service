@@ -399,6 +399,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('get-user/{id}', 'getUser');
         Route::post('get-all-users', 'getAllUsers');
         Route::post('list-employees', 'employeeList');
+        Route::post('list-active-employees', 'activeEmployeeList');
         Route::post('get-user-notifications', 'userNotification');
         Route::post('add-user-notification', 'addNotification');
         Route::post('delete-user-notification', 'deactivateNotification');
