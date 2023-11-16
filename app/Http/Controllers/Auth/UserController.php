@@ -60,13 +60,13 @@ class UserController extends Controller
             if (Hash::check($req->password, $user->password)) {
 
                 $tockenDtl = $user->createToken('my-app-token');
-                $ipAddress = getClientIpAddress();#$req->userAgent()
+                $ipAddress = getClientIpAddress(); #$req->userAgent()
                 $bousuerInfo = [
-                    "latitude"=>$req->browserInfo["latitude"]??"",
-                    "longitude"=>$req->browserInfo["longitude"]??"",
-                    "machine"=>$req->browserInfo["machine"]??"",
-                    "browser_name"=>$req->browserInfo["browserName"]??$req->userAgent(),
-                    "ip"=>$ipAddress??"",
+                    "latitude" => $req->browserInfo["latitude"] ?? "",
+                    "longitude" => $req->browserInfo["longitude"] ?? "",
+                    "machine" => $req->browserInfo["machine"] ?? "",
+                    "browser_name" => $req->browserInfo["browserName"] ?? $req->userAgent(),
+                    "ip" => $ipAddress ?? "",
                 ];
                 DB::table('personal_access_tokens')
                     ->where('id', $tockenDtl->accessToken->id)
@@ -416,6 +416,25 @@ class UserController extends Controller
                 ->where('user_type', 'Employee')
                 ->where('ulb_id', $ulbId)
                 ->orderBy('id')
+                ->get();
+
+            return responseMsgs(true, "List Employee", $data, "", "01", ".ms", "POST", "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
+        }
+    }
+
+    /**
+     * | Active Employee List
+     */
+    public function activeEmployeeList(){
+        try {
+            $ulbId = authUser()->ulb_id;
+            $data = User::select('name as user_name', 'id')
+                ->where('user_type', 'Employee')
+                ->where('suspended', false)
+                ->where('ulb_id', $ulbId)
+                ->orderBy('name')
                 ->get();
 
             return responseMsgs(true, "List Employee", $data, "", "01", ".ms", "POST", "");
