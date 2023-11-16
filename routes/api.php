@@ -465,6 +465,7 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::match(["get", 'post'], "market/rental/shop-payment-reciept/{tranId}", "unAuthApis");
         Route::post("property/prop-payment-receipt", "unAuthApis");
         Route::match(["get", 'post'], "market/rental/update-webhook-data", "unAuthApis");
+        Route::post("property/v1/get_ward_name_by_zone", "unAuthApis");
     });
 });
 
