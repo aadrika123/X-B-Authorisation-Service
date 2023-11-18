@@ -467,6 +467,8 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::post("property/prop-payment-receipt", "unAuthApis");
         Route::match(["get", 'post'], "market/rental/update-webhook-data", "unAuthApis");
         Route::post("property/v1/get_ward_name_by_zone", "unAuthApis");
+        Route::post("property/citizen/get-holding-dues", "unAuthApis");
+        Route::post("property/get-holding-dues-of-property", "unAuthApis");
     });
 });
 
