@@ -471,6 +471,7 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::post("property/citizen/icic-init-payment", "unAuthApis");
         Route::post("property/get-holding-dues-of-property", "unAuthApis");
         Route::post('property/search-holding-direct', 'unAuthApis');
+        Route::post('property/prop-payment-history-direct', 'unAuthApis');
     });
 });
 
