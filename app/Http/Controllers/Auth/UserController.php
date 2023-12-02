@@ -429,14 +429,18 @@ class UserController extends Controller
      */
     public function activeEmployeeList(){
         try {
+            // DB::enableQueryLog();
             $ulbId = authUser()->ulb_id;
             $data = User::select('name as user_name', 'id')
-                ->where('user_type', 'Employee')
+                ->where(function ($where) {
+                    $where->where('user_type', '=', 'Employee')
+                          ->orWhere('user_type', '=', 'NSK');
+                })
                 ->where('suspended', false)
                 ->where('ulb_id', $ulbId)
                 ->orderBy('name')
                 ->get();
-
+            // dd(DB::getQueryLog());
             return responseMsgs(true, "List Employee", $data, "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
