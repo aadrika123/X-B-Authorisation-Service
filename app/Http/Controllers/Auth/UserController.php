@@ -433,7 +433,7 @@ class UserController extends Controller
             $ulbId = authUser()->ulb_id;
             $data = User::select('name as user_name', 'id')
                 ->where(function ($where) {
-                    $where->where('user_type', '=', 'Employee')
+                    $where->where('user_type', '=', 'TC')
                           ->orWhere('user_type', '=', 'NSK');
                 })
                 ->where('suspended', false)
