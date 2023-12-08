@@ -312,6 +312,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user-managment/v1/crud/ward-user/delete', 'deleteWardUser');     // Delete WardUser
         Route::post('user-managment/v1/crud/ward-user/by-user', 'wardByUserId');     // Ward by user id
         Route::post('workflow/ward-user/list-tc', 'tcList');
+        Route::post('workflow/get-all/list-tc', 'getTcTlJSKList');
     });
 
 

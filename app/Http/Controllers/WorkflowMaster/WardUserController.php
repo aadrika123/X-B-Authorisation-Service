@@ -219,4 +219,22 @@ class WardUserController extends Controller
             return responseMsgs(false, $e->getMessage(), "");
         }
     }
+
+    public function getTcTlJSKList(Request $req)
+    {
+        try {
+            $query = "SELECT DISTINCT users.id, users.name AS user_name, users.user_type, wf_roles.role_name
+            FROM users
+            JOIN wf_roleusermaps ON wf_roleusermaps.user_id = users.id
+            JOIN wf_roles ON wf_roles.id = wf_roleusermaps.wf_role_id
+            WHERE wf_role_id IN (8, 7, 5, 4) AND users.suspended != true AND wf_roleusermaps.is_suspended != true
+            ORDER BY wf_roles.role_name DESC, user_name ASC
+                ";
+
+            $data = DB::select($query);
+            return responseMsg(true, "Ward List of User", $data);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "");
+        }
+    }
 }
