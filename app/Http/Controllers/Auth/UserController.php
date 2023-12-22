@@ -583,4 +583,27 @@ class UserController extends Controller
         $userType = Config::get('constants.USER_TYPE');
         return responseMsgs(true, "User Type", $userType);
     }
+
+    public function userDtls(Request $req)
+    {
+        try{
+            $mWfRoleusermap = new WfRoleusermap();
+            $user = Auth()->user();
+            $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
+            // if (empty(collect($menuRoleDetails)->first())) {
+            //     throw new Exception('User has No Roles!');
+            // }
+            $role = collect($menuRoleDetails)->map(function ($value, $key) {
+                $values = $value['roles'];
+                return $values;
+            });
+            $data['userDetails'] = $user;
+            $data['userDetails']['role'] = $role;
+            return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
+        }
+        catch(Exception $e)
+        {
+            return responseMsgs(false, $e->getMessage(),"", 010101, "1.0", responseTime(), "POST", $req->deviceId);
+        }
+    }
 }

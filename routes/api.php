@@ -55,6 +55,7 @@ Route::controller(UserController::class)->group(function () {
     Route::post('login', 'loginAuth');
     Route::post('register', 'store');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
+    Route::post('get-user-dtl', 'userDtls')->middleware('auth:sanctum');
 });
 
 /**
@@ -438,9 +439,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('add-update-quickaccess', 'addUpdateQuickAccess');
     });
 
-    Route::controller(TestController::class)->group(function () {
-        Route::post('repo/test', 'test');
-    });
+    // Route::controller(TestController::class)->group(function () {
+    //     Route::post('repo/test', 'test');
+    // });
 
     Route::controller(WorkflowMap::class)->group(function () {
         Route::post('workflow/getWardByUlb', 'getWardByUlb');
