@@ -47,10 +47,24 @@ class ThirdPartyController extends Controller
                 $userDetails = ActiveCitizen::where('mobile', $request->mobileNo)
                     ->first();
                 if (!$userDetails) {
-                    throw new Exception("Pleas check your mobile.no!");
+                    throw new Exception("Please check your mobile.no!");
                 }
             }
             $generateOtp = $this->generateOtp();
+
+            // $data =
+            //     [
+            //         "owner_name" => 'customerName',
+            //         "saf_no"     => 'transactionNo'
+            //     ];
+
+            // // $type = "Forget Password";
+            // $type = $request->type == "Register" ? "Register" : "Forgot Password";
+
+            // $sms = "Dear " . $data["owner_name"] . ", congratulations on submitting your Assessment application! Your Ref No. is " . $data["saf_no"] . ". For details visit www.akolamc.org/call us at:18008907909 SWATI INDUSTRIES";
+            // // $sms = $generateOtp . " is your One time password (OTP) for " . $type . " to Akola Municipal Corporation. Don't Share Otp with anyone. Please enter the OTP to proceed." . "For details visit www.akolamc.org/call us at:18008907909 SWATI INDUSTRIES";
+            // $response = SMSAKGOVT(8797770238, $sms, 1707169564185074869);
+
             DB::beginTransaction();
             $mOtpRequest->saveOtp($request, $generateOtp);
             DB::commit();
