@@ -53,7 +53,7 @@ class ThirdPartyController extends Controller
                 }
             }
             $generateOtp = $this->generateOtp();
-            $otpType     = $request->type == "Register" ? "Citizen Registration" : "Forgot Password";
+            $otpType     = $request->type == "Forgot" ? "Forgot Password" : "Citizen Registration";
             $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
             $response = SMSAKGOVT($mobileNo, $sms, 1707170367857263583);
