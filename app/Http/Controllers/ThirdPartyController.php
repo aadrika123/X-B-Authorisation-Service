@@ -37,15 +37,16 @@ class ThirdPartyController extends Controller
                 'type' => "nullable|in:Register,Forgot",
             ]);
             $mOtpRequest = new OtpRequest();
+            $mobileNo    =  $request->mobileNo;
             if ($request->type == "Register") {
-                $userDetails = ActiveCitizen::where('mobile', $request->mobileNo)
+                $userDetails = ActiveCitizen::where('mobile', $mobileNo)
                     ->first();
                 if ($userDetails) {
-                    throw new Exception("Mobile no $request->mobileNo is registered to An existing account!");
+                    throw new Exception("Mobile no $mobileNo is registered to An existing account!");
                 }
             }
             if ($request->type == "Forgot") {
-                $userDetails = ActiveCitizen::where('mobile', $request->mobileNo)
+                $userDetails = ActiveCitizen::where('mobile', $mobileNo)
                     ->first();
                 if (!$userDetails) {
                     throw new Exception("Please check your mobile.no!");
@@ -55,7 +56,7 @@ class ThirdPartyController extends Controller
             $otpType     = $request->type == "Register" ? "Citizen Registration" : "Forgot Password";
             $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
-            $response = SMSAKGOVT(8797770238, $sms, 1707170367857263583);
+            $response = SMSAKGOVT($mobileNo, $sms, 1707170367857263583);
             $mOtpRequest->saveOtp($request, $generateOtp);
 
             return responseMsgs(true, "OTP send to your mobile No!", $generateOtp, "", "01", ".ms", "POST", "");
