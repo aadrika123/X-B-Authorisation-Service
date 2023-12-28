@@ -10,6 +10,7 @@ use App\Models\Auth\ActiveCitizen;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -78,7 +79,7 @@ class CitizenController extends Controller
                 ]);
         }
 
-        if (isset($request->aadharDoc)) {
+        if (isset($request->aadharDoc) && $request->aadharDoc instanceof UploadedFile) {
             $filename = $id.'-aadharDoc';
             $document = $request->aadharDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
@@ -89,7 +90,7 @@ class CitizenController extends Controller
                 ]);
         }
 
-        if ($request->speciallyAbledDoc) {
+        if ($request->speciallyAbledDoc && $request->aadharDoc instanceof UploadedFile) {
             $filename = $id.'-speciallyAbled';
             $document = $request->speciallyAbledDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
@@ -100,7 +101,7 @@ class CitizenController extends Controller
                 ]);
         }
 
-        if ($request->armedForceDoc) {
+        if ($request->armedForceDoc && $request->aadharDoc instanceof UploadedFile) {
             $filename = $id.'-armedForce';
             $document = $request->armedForceDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
