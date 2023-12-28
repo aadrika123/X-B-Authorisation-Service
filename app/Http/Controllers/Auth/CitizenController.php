@@ -61,14 +61,14 @@ class CitizenController extends Controller
     public function docUpload($request, $id)
     {
         $docUpload = new DocUpload;
-        $imageRelativePath = 'Uploads/Citizen/' . $id;
+        $imageRelativePath = 'Uploads/Citizen' ;
         ActiveCitizen::where('id', $id)
             ->update([
                 'relative_path' => $imageRelativePath . '/',
             ]);
 
         if ($request->photo) {
-            $filename = 'photo';
+            $filename = $id.'-photo';
             $document = $request->photo;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -79,7 +79,7 @@ class CitizenController extends Controller
         }
 
         if (isset($request->aadharDoc)) {
-            $filename = 'aadharDoc';
+            $filename = $id.'-aadharDoc';
             $document = $request->aadharDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -90,7 +90,7 @@ class CitizenController extends Controller
         }
 
         if ($request->speciallyAbledDoc) {
-            $filename = 'speciallyAbled';
+            $filename = $id.'-speciallyAbled';
             $document = $request->speciallyAbledDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -101,7 +101,7 @@ class CitizenController extends Controller
         }
 
         if ($request->armedForceDoc) {
-            $filename = 'armedForce';
+            $filename = $id.'-armedForce';
             $document = $request->armedForceDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
