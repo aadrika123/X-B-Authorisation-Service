@@ -7,6 +7,7 @@ use App\Models\Auth\ActiveCitizen;
 use App\Models\OtpMaster;
 use App\Models\OtpRequest;
 use App\Models\User;
+use Carbon\Carbon;
 use Seshac\Otp\Otp;
 use Exception;
 use Illuminate\Http\Request;
@@ -51,26 +52,14 @@ class ThirdPartyController extends Controller
                 }
             }
             $generateOtp = $this->generateOtp();
+            $otpType     = $request->type == "Register" ? "Citizen Registration" : "Forgot Password";
+            $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
-            // $data =
-            //     [
-            //         "owner_name" => 'customerName',
-            //         "saf_no"     => 'transactionNo'
-            //     ];
-
-            // // $type = "Forget Password";
-            // $type = $request->type == "Register" ? "Register" : "Forgot Password";
-
-            // $sms = "Dear " . $data["owner_name"] . ", congratulations on submitting your Assessment application! Your Ref No. is " . $data["saf_no"] . ". For details visit www.akolamc.org/call us at:18008907909 SWATI INDUSTRIES";
-            // // $sms = $generateOtp . " is your One time password (OTP) for " . $type . " to Akola Municipal Corporation. Don't Share Otp with anyone. Please enter the OTP to proceed." . "For details visit www.akolamc.org/call us at:18008907909 SWATI INDUSTRIES";
-            // $response = SMSAKGOVT(8797770238, $sms, 1707169564185074869);
-
-            DB::beginTransaction();
+            $response = SMSAKGOVT(8797770238, $sms, 1707170367857263583);
             $mOtpRequest->saveOtp($request, $generateOtp);
-            DB::commit();
+
             return responseMsgs(true, "OTP send to your mobile No!", $generateOtp, "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
-            DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "0101", "01", ".ms", "POST", "");
         }
     }
@@ -115,8 +104,8 @@ class ThirdPartyController extends Controller
      */
     public function generateOtp()
     {
-        // $otp = Carbon::createFromDate()->milli . random_int(100, 999);
-        $otp = 123123;
+        $otp = Carbon::createFromDate()->milli . random_int(100, 999);
+        // $otp = 123123;
         return $otp;
     }
 }
