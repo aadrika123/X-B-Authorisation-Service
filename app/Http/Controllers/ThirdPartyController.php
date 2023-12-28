@@ -7,6 +7,7 @@ use App\Models\Auth\ActiveCitizen;
 use App\Models\OtpMaster;
 use App\Models\OtpRequest;
 use App\Models\User;
+use Carbon\Carbon;
 use Seshac\Otp\Otp;
 use Exception;
 use Illuminate\Http\Request;
@@ -36,27 +37,30 @@ class ThirdPartyController extends Controller
                 'type' => "nullable|in:Register,Forgot",
             ]);
             $mOtpRequest = new OtpRequest();
+            $mobileNo    =  $request->mobileNo;
             if ($request->type == "Register") {
-                $userDetails = ActiveCitizen::where('mobile', $request->mobileNo)
+                $userDetails = ActiveCitizen::where('mobile', $mobileNo)
                     ->first();
                 if ($userDetails) {
-                    throw new Exception("Mobile no $request->mobileNo is registered to An existing account!");
+                    throw new Exception("Mobile no $mobileNo is registered to An existing account!");
                 }
             }
             if ($request->type == "Forgot") {
-                $userDetails = ActiveCitizen::where('mobile', $request->mobileNo)
+                $userDetails = ActiveCitizen::where('mobile', $mobileNo)
                     ->first();
                 if (!$userDetails) {
-                    throw new Exception("Pleas check your mobile.no!");
+                    throw new Exception("Please check your mobile.no!");
                 }
             }
             $generateOtp = $this->generateOtp();
-            DB::beginTransaction();
+            $otpType     = $request->type == "Forgot" ? "Forgot Password" : "Citizen Registration";
+            $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
+
+            $response = SMSAKGOVT($mobileNo, $sms, 1707170367857263583);
             $mOtpRequest->saveOtp($request, $generateOtp);
-            DB::commit();
+
             return responseMsgs(true, "OTP send to your mobile No!", $generateOtp, "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
-            DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "0101", "01", ".ms", "POST", "");
         }
     }
@@ -101,8 +105,8 @@ class ThirdPartyController extends Controller
      */
     public function generateOtp()
     {
-        // $otp = Carbon::createFromDate()->milli . random_int(100, 999);
-        $otp = 123123;
+        $otp = Carbon::createFromDate()->milli . random_int(100, 999);
+        // $otp = 123123;
         return $otp;
     }
 }
