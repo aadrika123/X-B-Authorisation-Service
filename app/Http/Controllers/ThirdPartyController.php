@@ -52,7 +52,7 @@ class ThirdPartyController extends Controller
                     throw new Exception("Please check your mobile.no!");
                 }
             }
-            $generateOtp = $this->generateOtp();
+           return( $generateOtp = $this->generateOtp());
             $otpType     = $request->type == "Forgot" ? "Forgot Password" : "Citizen Registration";
             $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
@@ -105,7 +105,7 @@ class ThirdPartyController extends Controller
      */
     public function generateOtp()
     {
-        $otp = Carbon::createFromDate()->milli . random_int(100, 999);
+        $otp = str_pad(Carbon::createFromDate()->milli . random_int(100, 999),6,0);
         // $otp = 123123;
         return $otp;
     }
