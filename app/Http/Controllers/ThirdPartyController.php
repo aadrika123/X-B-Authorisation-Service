@@ -34,7 +34,7 @@ class ThirdPartyController extends Controller
         try {
             $request->validate([
                 'mobileNo' => "required|digits:10|regex:/[0-9]{10}/", #exists:active_citizens,mobile|
-                'type' => "nullable|in:Register,Forgot",
+                'type' => "nullable|in:Register,Forgot,Update Mobile",
             ]);
             $mOtpRequest = new OtpRequest();
             $mobileNo    =  $request->mobileNo;
@@ -49,7 +49,7 @@ class ThirdPartyController extends Controller
                 $userDetails = ActiveCitizen::where('mobile', $mobileNo)
                     ->first();
                 if (!$userDetails) {
-                    throw new Exception("Please check your mobile.no!");
+                    throw new Exception("Please Check Your Mobile No!");
                 }
             }
             $generateOtp = $this->generateOtp();
@@ -90,10 +90,16 @@ class ThirdPartyController extends Controller
                 $msg = "OTP not match!";
                 return responseMsgs(false, $msg, "", "", "01", ".ms", "POST", "");
             }
-            $token = $mActiveCitizen->changeToken($request);
+
+            $otpLog = $checkOtp->replicate();
+            $otpLog->setTable('log_otp_requests');
+            $otpLog->id = $checkOtp->id;
+            $otpLog->save();
+
+            // $token = $mActiveCitizen->changeToken($request);
             $checkOtp->delete();
             DB::commit();
-            return responseMsgs(true, "OTP Validated!", remove_null($token), "", "01", ".ms", "POST", "");
+            return responseMsgs(true, "OTP Validated!", "", "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
@@ -105,7 +111,7 @@ class ThirdPartyController extends Controller
      */
     public function generateOtp()
     {
-        $otp = Carbon::createFromDate()->milli . random_int(100, 999);
+        $otp = str_pad(Carbon::createFromDate()->milli . random_int(100, 999), 6, 0);
         // $otp = 123123;
         return $otp;
     }
