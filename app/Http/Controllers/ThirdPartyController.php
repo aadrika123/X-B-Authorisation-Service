@@ -59,7 +59,7 @@ class ThirdPartyController extends Controller
             $response = SMSAKGOVT($mobileNo, $sms, 1707170367857263583);
             $mOtpRequest->saveOtp($request, $generateOtp);
 
-            return responseMsgs(true, "OTP send to your mobile No!", $generateOtp, "", "01", ".ms", "POST", "");
+            return responseMsgs(true, "OTP send to your mobile No!", "", "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0101", "01", ".ms", "POST", "");
         }
