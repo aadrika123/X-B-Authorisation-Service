@@ -53,13 +53,14 @@ class ThirdPartyController extends Controller
                 }
             }
             $generateOtp = $this->generateOtp();
-            switch ($request->type) {
-                case ('Forgot'):
-                    $otpType = 'Forgot Password';
-                    break;
 
+            switch ($request->type) {
                 case ('Register'):
                     $otpType = 'Citizen Registration';
+                    break;
+
+                case ('Forgot'):
+                    $otpType = 'Forgot Password';
                     break;
 
                 case ('Update Mobile'):
