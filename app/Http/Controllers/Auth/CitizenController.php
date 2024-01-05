@@ -62,14 +62,14 @@ class CitizenController extends Controller
     public function docUpload($request, $id)
     {
         $docUpload = new DocUpload;
-        $imageRelativePath = 'Uploads/Citizen' ;
+        $imageRelativePath = 'Uploads/Citizen';
         ActiveCitizen::where('id', $id)
             ->update([
                 'relative_path' => $imageRelativePath . '/',
             ]);
 
         if ($request->photo) {
-            $filename = $id.'-photo';
+            $filename = $id . '-photo';
             $document = $request->photo;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -80,7 +80,7 @@ class CitizenController extends Controller
         }
 
         if (isset($request->aadharDoc) && $request->aadharDoc instanceof UploadedFile) {
-            $filename = $id.'-aadharDoc';
+            $filename = $id . '-aadharDoc';
             $document = $request->aadharDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -91,7 +91,7 @@ class CitizenController extends Controller
         }
 
         if ($request->speciallyAbledDoc && $request->aadharDoc instanceof UploadedFile) {
-            $filename = $id.'-speciallyAbled';
+            $filename = $id . '-speciallyAbled';
             $document = $request->speciallyAbledDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -102,7 +102,7 @@ class CitizenController extends Controller
         }
 
         if ($request->armedForceDoc && $request->aadharDoc instanceof UploadedFile) {
-            $filename = $id.'-armedForce';
+            $filename = $id . '-armedForce';
             $document = $request->armedForceDoc;
             $imageName = $docUpload->upload($filename, $document, $imageRelativePath);
 
@@ -269,8 +269,9 @@ class CitizenController extends Controller
     public function changeCitizenPassByOtp(OtpChangePass $request)
     {
         try {
-            $id = auth()->user()->id;
-            $citizen = ActiveCitizen::where('id', $id)->firstOrFail();
+            // $id = auth()->user()->id;
+            $citizen = ActiveCitizen::where('mobile', $request->mobileNo)
+                ->firstOrFail();
             $citizen->password = Hash::make($request->password);
             $citizen->save();
 

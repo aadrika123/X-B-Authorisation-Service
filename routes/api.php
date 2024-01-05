@@ -414,7 +414,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('get-all-citizens', 'getAllCitizens');                                                      // Get All Citizens
         Route::post('edit-citizen-profile', 'citizenEditProfile');                                             // Approve Or Reject Citizen by Id
         Route::post('change-citizen-pass', 'changeCitizenPass');                                               // Change the Password of The Citizen Using its Old Password 
-        Route::post('otp/change-citizen-pass', 'changeCitizenPassByOtp');                                      // Change Password using OTP for Citizen
+        Route::post('otp/change-citizen-pass', 'changeCitizenPassByOtp')->withoutMiddleware('auth:sanctum');;  // Change Password using OTP for Citizen
         Route::post('citizen-profile-details', 'profileDetails');
     });
 
