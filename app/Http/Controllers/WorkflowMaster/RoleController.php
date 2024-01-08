@@ -146,4 +146,24 @@ class RoleController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "120305", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * | Role List
+     */
+    public function selectedRole(Request $req)
+    {
+        try {
+            $mWfRole = new WfRole();
+            $roles = $mWfRole->roleList()
+                ->where('can_view', true)
+                ->get();
+
+            if ($roles->isEmpty())
+                throw new Exception("No data Found");
+
+            return responseMsgs(true, "Selected Role List", $roles, "120306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "120306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
 }

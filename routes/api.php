@@ -131,11 +131,12 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 3
      */
     Route::controller(RoleController::class)->group(function () {
-        Route::post('user-managment/v1/crud/workflow-role/save', 'createRole');        #API_ID=120301  | Save Workflow Role
-        Route::post('user-managment/v1/crud/workflow-role/edit', 'editRole');          #API_ID=120302  | edit Workflow Role
-        Route::post('user-managment/v1/crud/workflow-role/get', 'getRole');            #API_ID=120303  | Get Workflow Role By Id
-        Route::post('user-managment/v1/crud/workflow-role/list', 'getAllRoles');       #API_ID=120304  | Get All Workflow Role          
-        Route::post('user-managment/v1/crud/workflow-role/delete', 'deleteRole');      #API_ID=120305  | Delete Workflow Role
+        Route::post('user-managment/v1/crud/workflow-role/save', 'createRole');                 #API_ID=120301  | Save Workflow Role
+        Route::post('user-managment/v1/crud/workflow-role/edit', 'editRole');                   #API_ID=120302  | edit Workflow Role
+        Route::post('user-managment/v1/crud/workflow-role/get', 'getRole');                     #API_ID=120303  | Get Workflow Role By Id
+        Route::post('user-managment/v1/crud/workflow-role/list', 'getAllRoles');                #API_ID=120304  | Get All Workflow Role          
+        Route::post('user-managment/v1/crud/workflow-role/delete', 'deleteRole');               #API_ID=120305  | Delete Workflow Role
+        Route::post('user-managment/v1/crud/workflow-role/selected-role', 'selectedRole');      #API_ID=120306  | Selected Workflow Role
     });
 
     /**
