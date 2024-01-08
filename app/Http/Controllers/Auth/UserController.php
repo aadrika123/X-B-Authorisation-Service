@@ -203,8 +203,7 @@ class UserController extends Controller
                     SearchByName::class,
                     SearchByEmail::class,
                     SearchByMobile::class,
-                    SearchByRole::class,
-
+                    SearchByRole::class
                 ])
                 ->thenReturn()
                 ->paginate($perPage);
