@@ -53,6 +53,10 @@ class UserController extends Controller
             return validationError($validated);
         try {
             $mWfRoleusermap = new WfRoleusermap();
+            if ($req->module == 'dashboard') {
+                if ($req->email <> 'stateadmin@gmail.com')
+                    throw new Exception("You are not Authorised");
+            }
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
                 throw new Exception("Oops! Given email does not exist");
