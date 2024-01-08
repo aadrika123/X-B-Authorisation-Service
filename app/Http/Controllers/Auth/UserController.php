@@ -14,6 +14,7 @@ use App\Models\Workflows\WfRoleusermap;
 use App\Pipelines\User\SearchByEmail;
 use App\Pipelines\User\SearchByMobile;
 use App\Pipelines\User\SearchByName;
+use App\Pipelines\User\SearchByRole;
 use App\Traits\Auth;
 use Carbon\Carbon;
 use Exception;
@@ -191,8 +192,8 @@ class UserController extends Controller
                 DB::raw("CONCAT(photo_relative_path, '/', photo) AS photo"),
                 DB::raw("CONCAT(sign_relative_path, '/', signature) AS signature")
             )
-                ->where('ulb_id', $ulbId)
-                ->orderBy('id');
+                ->where('users.ulb_id', $ulbId)
+                ->orderBy('users.id');
 
             $userList = app(Pipeline::class)
                 ->send(
@@ -201,7 +202,9 @@ class UserController extends Controller
                 ->through([
                     SearchByName::class,
                     SearchByEmail::class,
-                    SearchByMobile::class
+                    SearchByMobile::class,
+                    SearchByRole::class,
+
                 ])
                 ->thenReturn()
                 ->paginate($perPage);
@@ -427,14 +430,15 @@ class UserController extends Controller
     /**
      * | Active Employee List
      */
-    public function activeEmployeeList(){
+    public function activeEmployeeList()
+    {
         try {
             // DB::enableQueryLog();
             $ulbId = authUser()->ulb_id;
             $data = User::select('name as user_name', 'id')
                 ->where(function ($where) {
                     $where->where('user_type', '=', 'TC')
-                          ->orWhere('user_type', '=', 'NSK');
+                        ->orWhere('user_type', '=', 'NSK');
                 })
                 ->where('suspended', false)
                 ->where('ulb_id', $ulbId)
@@ -586,7 +590,7 @@ class UserController extends Controller
 
     public function userDtls(Request $req)
     {
-        try{
+        try {
             $mWfRoleusermap = new WfRoleusermap();
             $user = Auth()->user();
             $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
@@ -600,10 +604,8 @@ class UserController extends Controller
             $data['userDetails'] = $user;
             $data['userDetails']['role'] = $role;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
-        }
-        catch(Exception $e)
-        {
-            return responseMsgs(false, $e->getMessage(),"", 010101, "1.0", responseTime(), "POST", $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", 010101, "1.0", responseTime(), "POST", $req->deviceId);
         }
     }
 }
