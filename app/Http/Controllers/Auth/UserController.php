@@ -193,6 +193,7 @@ class UserController extends Controller
             $ulbId = authUser()->ulb_id;
             $data = User::select(
                 '*',
+                'users.id as id',
                 DB::raw("CONCAT(photo_relative_path, '/', photo) AS photo"),
                 DB::raw("CONCAT(sign_relative_path, '/', signature) AS signature")
             )
