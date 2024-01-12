@@ -147,7 +147,21 @@ class CitizenController extends Controller
 
             if ($citizenInfo) {
                 if (Hash::check($req->password, $citizenInfo->password)) {
-                    $token = $citizenInfo->createToken('my-app-token')->plainTextToken;
+                    $ipAddress = getClientIpAddress();
+                    $bousuerInfo = [
+                        "latitude" => $req->browserInfo["latitude"] ?? "",
+                        "longitude" => $req->browserInfo["longitude"] ?? "",
+                        "machine" => $req->browserInfo["machine"] ?? "",
+                        "browser_name" => $req->browserInfo["browserName"] ?? $req->userAgent(),
+                        "ip" => $ipAddress ?? "",
+                    ];
+                    $tockenDtl = $citizenInfo->createToken('my-app-token');
+                    DB::table('personal_access_tokens')
+                        ->where('id', $tockenDtl->accessToken->id)
+                        ->update($bousuerInfo);
+
+                    $token = $tockenDtl->plainTextToken;
+                    // $token = $citizenInfo->createToken('my-app-token')->plainTextToken;
                     $citizenInfo->remember_token = $token;
                     $citizenInfo->save();
                     $userDetails['token'] = $token;
