@@ -34,5 +34,6 @@ return [
     "akola_sender_id" => env('SMS_SENDER_ID'),
     "akola_entity_id" => env('SMS_ENTITY_ID'),
     "akola_url"       => env('SMS_URL'),
+    "sms_test"       => env('SMS_TEST',false),
 
 ];

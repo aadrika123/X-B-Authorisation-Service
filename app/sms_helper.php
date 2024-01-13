@@ -48,3 +48,33 @@ if (!function_exists('SMSAKGOVT')) {
         }
     }
 }
+if (!function_exists('send_sms')) {
+    function send_sms($mobile, $message, $templateid)
+    {
+        if (Config::get("constants.sms_test")) {
+            $mobile = "9153975142";                 #_office mobile no
+        }
+        $res = SMSAKGOVT($mobile, $message, $templateid);
+        return $res;
+    }
+}
+
+if (!function_exists("OTP")) {
+    function OTP($data = array())
+    {
+        try {
+            $sms = "OTP for " . $data["otpType"] . " at Akola Municipal Corporation's portal is " . $data["Otp"] . ". This OTP is valid for 10 minutes.";
+            $temp_id = "1707170367857263583";
+            return array("sms" => $sms, "temp_id" => $temp_id, 'status' => true);
+        }
+        catch (Exception $e) {
+            return array(                
+                "sms_formate" => "OTP for {#var#} at Akola Municipal Corporation's portal is {#var#}. This OTP is valid for 10 minutes.",
+                "discriuption" => "1. 2 para required 
+                  2. 1st para array('otpType'=>'','Otp'=>'') sizeof 2  ",
+                "error" => $e->getMessage(),
+                'status' => false
+            );
+        }
+    }
+}

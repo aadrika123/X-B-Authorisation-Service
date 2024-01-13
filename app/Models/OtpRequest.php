@@ -30,6 +30,10 @@ class OtpRequest extends Model
         $mOtpMaster->otp_time   = Carbon::now();
         $mOtpMaster->otp_type   = $request->type;
         $mOtpMaster->hit_count  = 1;
+        $mOtpMaster->email      = $request->email;
+        $mOtpMaster->user_id    = $request->userId;
+        $mOtpMaster->user_type  = $request->userType;
+        $mOtpMaster->expires_at = $request->expiresAt ? $request->expiresAt : Carbon::now()->addMinutes(10);
         $mOtpMaster->save();
         // }
     }
