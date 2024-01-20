@@ -422,6 +422,7 @@ class UserController extends Controller
             $data = User::select('name as user_name', 'id')
                 ->whereIn('user_type', ['Employee', 'JSK'])
                 ->where('ulb_id', $ulbId)
+                ->where('suspended', false)
                 ->orderBy('id')
                 ->get();
 
