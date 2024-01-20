@@ -11,6 +11,7 @@ use App\Models\Auth\User as AuthUser;
 use App\Models\OtpMaster;
 use App\Models\OtpRequest;
 use App\Models\PasswordResetOtpToken;
+use App\Models\TblSmsLog;
 use App\Models\User;
 use App\Pipelines\Citizen\SearchByEmail as CitizenSearchByEmail;
 use App\Pipelines\Citizen\SearchByMobile as CitizenSearchByMobile;
@@ -53,6 +54,8 @@ class ThirdPartyController extends Controller
                 'type' => "nullable|in:Register,Forgot,Update Mobile",
             ]);
             $mOtpRequest = new OtpRequest();
+            $mTblSmsLog = new TblSmsLog();
+            
             $mobileNo    =  $request->mobileNo;
             if ($request->type == "Register") {
                 $userDetails = ActiveCitizen::where('mobile', $mobileNo)
@@ -86,8 +89,22 @@ class ThirdPartyController extends Controller
             $generateOtp = $this->generateOtp();
             $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
-            $response = SMSAKGOVT($mobileNo, $sms, 1707170367857263583);
+            $response = send_sms($mobileNo, $sms, 1707170367857263583);
             $mOtpRequest->saveOtp($request, $generateOtp);
+
+            $smsReqs = [
+                "emp_id" => $request->userId ?? authUser($request)->id ?? 0,
+                "ref_id" => isset($userDetails) ? $userDetails->id : 0,
+                "ref_type" => 'Active Citizen',
+                "mobile_no" => $mobileNo,
+                "purpose" => "OTP for " . $otpType,
+                "template_id" => 1707170367857263583,
+                "message" => $sms,
+                "response" => $response['status'],
+                "smgid" => $response['msg'],
+                "stampdate" => Carbon::now(),
+            ];
+            $mTblSmsLog->create($smsReqs);
 
             return responseMsgs(true, "OTP send to your mobile No!", "", "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
