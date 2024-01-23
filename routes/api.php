@@ -16,6 +16,7 @@ use App\Http\Controllers\Menu\MenuRoleController;
 use App\Http\Controllers\Menu\MenuRoleMapController;
 use App\Http\Controllers\Menu\MenuRoleUserMapController;
 use App\Http\Controllers\Menu\TestController;
+use App\Http\Controllers\MobiMenu\MobiMenuController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ThirdPartyController;
 use App\Http\Controllers\WorkflowMaster\MasterController;
@@ -449,6 +450,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(WorkflowMap::class)->group(function () {
         Route::post('workflow/getWardByUlb', 'getWardByUlb');
+    });
+
+    Route::controller(MobiMenuController::class)->group(function(){
+        Route::post('mobi/add-menu', 'addMenu');
+        Route::post('mobi/edit-menu', 'editMenu');
+        Route::post('mobi/list-menu', 'getMenuList');
+        Route::post('mobi/dtl-menu', 'menuDtl');
+
+        Route::post('mobi/add-user-menu-exclude', 'addUserExcludeMenu');
+        Route::post('mobi/edit-user-menu-exclude', 'editUserExcludeMenu');
     });
 });
 // Api Gateway Routes for Unauth middleware required= 'apiPermission',
