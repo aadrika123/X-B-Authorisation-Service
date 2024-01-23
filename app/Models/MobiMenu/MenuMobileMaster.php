@@ -21,6 +21,12 @@ class MenuMobileMaster extends Model
             "menu_string"   =>  $data->menuName??null,
             "route"         =>  $data->path??null,
             "icon"          =>  $data->icon??null,
+            "is_sidebar"    =>  $data->isSidebar??false,
+            "is_menu"       =>  $data->isMnu??false,
+            "create"        =>  $data->create??false,
+            "read"          =>  $data->read??false,
+            "update"        =>  $data->update??false,
+            "delete"        =>  $data->delete??false,
         ];
         return MenuMobileMaster::create($inputs)->id;
     }
@@ -35,6 +41,12 @@ class MenuMobileMaster extends Model
             "menu_string"   =>  $data->menuName??null,
             "route"         =>  $data->path??null,
             "icon"          =>  $data->icon??null,
+            "is_sidebar"    =>  $data->isSidebar??false,
+            "is_menu"       =>  $data->isMnu??false,
+            "create"        =>  $data->create??false,
+            "read"          =>  $data->read??false,
+            "update"        =>  $data->update??false,
+            "delete"        =>  $data->delete??false,
         ];
         if(isset($data->status))
         {
