@@ -424,16 +424,25 @@ class MobiMenuController extends Controller
 
     public function UserMenuListForExcludeInclude(Request $request)
     {
+        $validator = Validator::make($request->all(),
+            [
+                "userId"=>"required|digits_between:0,99999999999",
+                "excludeIncludeType"=>"required|string|in:Exclude,Include",
+            ]
+        );
+        if ($validator->fails()) {
+            return responseMsg(false, $validator->errors(), "");
+        }
         try {
             $user = Auth()->user();
-            $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($user->id);
+            $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($request->userId);
             
             $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
-                          ->where("user_menu_mobile_includes.user_id",$user->id)
+                          ->where("user_menu_mobile_includes.user_id",$request->userId)
                           ->where("user_menu_mobile_includes.is_active",true)
                           ->get();
             $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
-                        ->where("user_menu_mobile_excludes.user_id",$user->id)
+                        ->where("user_menu_mobile_excludes.user_id",$request->userId)
                         ->where("user_menu_mobile_excludes.is_active",true)
                         ->get();
             
