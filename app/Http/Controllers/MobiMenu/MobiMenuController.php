@@ -12,6 +12,7 @@ use App\Models\MobiMenu\MenuMobileMaster;
 use App\Models\MobiMenu\UserMenuMobileExclude;
 use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\Workflows\WfRole;
+use App\Models\Workflows\WfRoleusermap;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,12 +30,13 @@ class MobiMenuController extends Controller
     private $_MenuMobileMaster;
     private $_UserMenuMobileExclude;
     private $_UserMenuMobileInclude;
-
+    private $_WfRoleusermap;
     public function __construct()
     {
         $this->_MenuMobileMaster        = new MenuMobileMaster();
         $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
         $this->_UserMenuMobileInclude   = new UserMenuMobileInclude();
+        $this->_WfRoleusermap = new WfRoleusermap();
     }
 
     private function begin()
@@ -420,4 +422,62 @@ class MobiMenuController extends Controller
         }
     }
 
+    public function UserMenuListForExcludeInclude(Request $request)
+    {
+        try {
+            $user = Auth()->user();
+            $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($user->id);
+            
+            $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
+                          ->where("user_menu_mobile_includes.user_id",$user->id)
+                          ->where("user_menu_mobile_includes.is_active",true)
+                          ->get();
+            $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
+                        ->where("user_menu_mobile_excludes.user_id",$user->id)
+                        ->where("user_menu_mobile_excludes.is_active",true)
+                        ->get();
+            
+            $menuList = $this->_MenuMobileMaster->metaDtls();
+            if($request->excludeIncludeType=="Exclude")
+            {
+                $menuList = $menuList->where(function($query)use($menuRoleDetails,$includeMenu){
+                    $query->OrWhereIn("menu_mobile_masters.role_id",($menuRoleDetails)->pluck("roleId"));
+                    if($includeMenu->isNotEmpty())
+                    {
+                        $query->OrWhereIn("menu_mobile_masters.id",($includeMenu)->pluck("menu_id"));
+                    }
+                });
+            }
+                        
+            if($excludeMenu->isNotEmpty()&& $request->excludeIncludeType=="Include")
+            {
+                $menuList = $menuList->whereNotIn("menu_mobile_masters.id",($excludeMenu)->pluck("menu_id"));
+            }
+            $menuList = $menuList->get()->map(function($val){
+                return $val->only(
+                    [
+                        "id",
+                        "role_id",
+                        "parent_id",
+                        "module_id",
+                        "serial",
+                        "menu_string",
+                        "route",
+                        "icon",
+                        "is_sidebar",
+                        "is_menu",
+                        "create",
+                        "read",
+                        "update",
+                        "delete",
+                        "module_name",
+                    ]
+                );
+            });
+                        
+            return responseMsgs(true, $request->excludeIncludeType." Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, [$e->getMessage(),$e->getFile(),$e->getLine()], "", 010101, "1.0", responseTime(), "POST", $request->deviceId);
+        }
+    }
 }

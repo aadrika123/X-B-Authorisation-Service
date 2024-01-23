@@ -469,7 +469,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('mobi/list-user-menu-include', 'userIncludeMenuList');
         Route::post('mobi/dtl-user-menu-include', 'userIncludeMenuDtl');
 
-        Route::post("mobi/user-menu-list","UserMenuList");
+        Route::post("mobi/user-menu-exclude-include-list","UserMenuListForExcludeInclude");
     });
 });
 // Api Gateway Routes for Unauth middleware required= 'apiPermission',
