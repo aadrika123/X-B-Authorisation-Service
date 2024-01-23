@@ -420,8 +420,9 @@ class UserController extends Controller
         try {
             $ulbId = authUser()->ulb_id;
             $data = User::select('name as user_name', 'id')
-                ->where('user_type', 'Employee')
+                ->whereIn('user_type', ['Employee', 'JSK'])
                 ->where('ulb_id', $ulbId)
+                ->where('suspended', false)
                 ->orderBy('id')
                 ->get();
 
