@@ -457,9 +457,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('mobi/edit-menu', 'editMenu');
         Route::post('mobi/list-menu', 'getMenuList');
         Route::post('mobi/dtl-menu', 'menuDtl');
+        Route::post("mobi/get-parent-menu","getParentMenuList");
 
         Route::post('mobi/add-user-menu-exclude', 'addUserExcludeMenu');
         Route::post('mobi/edit-user-menu-exclude', 'editUserExcludeMenu');
+        Route::post('mobi/list-user-menu-exclude', 'userExcludeMenuList');
+        Route::post('mobi/dtl-user-menu-exclude', 'userExcludeMenuDtl');
+
+        Route::post('mobi/add-user-menu-include', 'addUserIncludeMenu');
+        Route::post('mobi/edit-user-menu-include', 'editUserIncludeMenu');
+        Route::post('mobi/list-user-menu-include', 'userIncludeMenuList');
+        Route::post('mobi/dtl-user-menu-include', 'userIncludeMenuDtl');
+
+        Route::post("mobi/user-menu-list","UserMenuList");
     });
 });
 // Api Gateway Routes for Unauth middleware required= 'apiPermission',

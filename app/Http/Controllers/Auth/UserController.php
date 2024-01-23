@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Pipeline\Pipeline;
+use App\Models\MobiMenu\MenuMobileMaster;
+use App\Models\MobiMenu\UserMenuMobileExclude;
+use App\Models\MobiMenu\UserMenuMobileInclude;
+use App\Models\ModuleMaster;
 
 use function PHPUnit\Framework\throwException;
 
@@ -31,9 +35,17 @@ class UserController extends Controller
 {
     use Auth;
     private $_mUser;
+    private $_MenuMobileMaster;
+    private $_UserMenuMobileExclude;
+    private $_UserMenuMobileInclude;
+    private $_ModuleMaster;
     public function __construct()
     {
         $this->_mUser = new User();
+        $this->_MenuMobileMaster = new MenuMobileMaster();
+        $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
+        $this->_UserMenuMobileInclude   = new UserMenuMobileInclude();
+        $this->_ModuleMaster = new ModuleMaster();
     }
 
     /**
@@ -606,8 +618,62 @@ class UserController extends Controller
                 $values = $value['roles'];
                 return $values;
             });
+            $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
+                          ->where("user_menu_mobile_includes.user_id",$user->id)
+                          ->where("user_menu_mobile_includes.is_active",true)
+                          ->get();
+            $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
+                        ->where("user_menu_mobile_excludes.user_id",$user->id)
+                        ->where("user_menu_mobile_excludes.is_active",true)
+                        ->get();
+                        DB::enablequerylog();
+            $menuList = $this->_MenuMobileMaster->metaDtls()
+                        ->where("menu_mobile_masters.is_active",true)
+                        ->where(function($query)use($menuRoleDetails,$includeMenu){
+                            $query->OrWhereIn("menu_mobile_masters.role_id",($menuRoleDetails)->pluck("roleId"));
+                            if($includeMenu->isNotEmpty())
+                            {
+                                $query->OrWhereIn("menu_mobile_masters.id",($includeMenu)->pluck("menu_id"));
+                            }
+                        });
+            if($excludeMenu->isNotEmpty())
+            {
+                $menuList = $menuList->whereNotIn("menu_mobile_masters.id",($excludeMenu)->pluck("menu_id"));
+            }
+            $menuList = $menuList->get()->map(function($val){
+                return $val->only(
+                    [
+                        "id",
+                        "role_id",
+                        "parent_id",
+                        "module_id",
+                        "serial",
+                        "menu_string",
+                        "route",
+                        "icon",
+                        "is_sidebar",
+                        "is_menu",
+                        "create",
+                        "read",
+                        "update",
+                        "delete",
+                        "module_name",
+                    ]
+                );
+            });
+            
+            $module = $this->_ModuleMaster->select("id","module_name")->where("is_suspended",false)->OrderBy("id","ASC")->get();
+            $routList = collect();
+            foreach($module as $val)
+            {
+                $rout["layout"] = $val->module_name;
+                $rout["pages"] = $menuList->where("module_id",$val->id)->values();
+                $routList->push($rout);
+            }
+            
             $data['userDetails'] = $user;
             $data['userDetails']['role'] = $role;
+            $data["routes"]=$routList;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", 010101, "1.0", responseTime(), "POST", $req->deviceId);

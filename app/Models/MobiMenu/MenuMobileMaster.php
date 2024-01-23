@@ -45,15 +45,15 @@ class MenuMobileMaster extends Model
 
     public function metaDtls()
     {
-        return self::select(self::getTable().".*","wf_roles.role_name","module_masters.module_name","parents.menu_string AS parent_menu")
-                ->leftjoin("wf_roles","wf_roles.id",self::getTable().".role_id")
-                ->leftjoin("module_masters","module_masters.id",self::getTable().".module_id")
-                ->leftjoin(self::getTable()." AS parents","parents.id",self::getTable().".parent_id");
+        return self::select("menu_mobile_masters.*","wf_roles.role_name","module_masters.module_name","parents.menu_string AS parent_menu")
+                ->leftjoin("wf_roles","wf_roles.id","menu_mobile_masters.role_id")
+                ->leftjoin("module_masters","module_masters.id","menu_mobile_masters.module_id")
+                ->leftjoin("menu_mobile_masters AS parents","parents.id","menu_mobile_masters.parent_id");
     }
 
     public function dtls ($id)
     {
-        return $this->metaDtls()->where(self::getTable().".id",$id)
+        return $this->metaDtls()->where("menu_mobile_masters.id",$id)
                 ->first();
     }
 
