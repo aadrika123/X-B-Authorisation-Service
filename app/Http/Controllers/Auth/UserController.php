@@ -667,7 +667,7 @@ class UserController extends Controller
             foreach($module as $val)
             {
                 $rout["layout"] = $val->module_name;
-                $rout["pages"] = $menuList->where("module_id",$val->id)->values();
+                $rout["pages"] = $menuList->where("module_id",$val->id)->sortBy("serial")->values();
                 $routList->push($rout);
             }
             
