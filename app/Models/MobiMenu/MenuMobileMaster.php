@@ -42,7 +42,7 @@ class MenuMobileMaster extends Model
             "route"         =>  $data->path??null,
             "icon"          =>  $data->icon??null,
             "is_sidebar"    =>  $data->isSidebar??false,
-            "is_menu"       =>  $data->isMnu??false,
+            "is_menu"       =>  $data->iseMnu??false,
             "create"        =>  $data->create??false,
             "read"          =>  $data->read??false,
             "update"        =>  $data->update??false,
