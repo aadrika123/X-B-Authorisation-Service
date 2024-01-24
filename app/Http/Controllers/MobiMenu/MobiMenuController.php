@@ -61,7 +61,11 @@ class MobiMenuController extends Controller
     public function addMenu(AddMenu $request)
     {
         try{  
-            $this->begin();          
+            $this->begin(); 
+            if($test=$this->_MenuMobileMaster->where(["module_id"=>$request->moduleId,"menu_string"=>$request->menuName,"route"=>$request->path,"role_id"=>$request->roleId])->first())
+            {
+                throw new Exception("This Menu Is Already Added");
+            }   
             if(!$this->_MenuMobileMaster->store($request))
             {
                 throw new Exception("Some Error Occurse On Storing Data");
