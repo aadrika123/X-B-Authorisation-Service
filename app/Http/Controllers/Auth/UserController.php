@@ -619,28 +619,29 @@ class UserController extends Controller
                 return $values;
             });
             $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
-                          ->where("user_menu_mobile_includes.user_id",$user->id)
-                          ->where("user_menu_mobile_includes.is_active",true)
-                          ->get();
+                ->where("user_menu_mobile_includes.user_id", $user->id)
+                ->where("user_menu_mobile_includes.is_active", true)
+                ->get();
             $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
-                        ->where("user_menu_mobile_excludes.user_id",$user->id)
-                        ->where("user_menu_mobile_excludes.is_active",true)
-                        ->get();
-                        DB::enablequerylog();
+                ->where("user_menu_mobile_excludes.user_id", $user->id)
+                ->where("user_menu_mobile_excludes.is_active", true)
+                ->get();
+            DB::enablequerylog();
             $menuList = $this->_MenuMobileMaster->metaDtls()
-                        ->where("menu_mobile_masters.is_active",true)
-                        ->where(function($query)use($menuRoleDetails,$includeMenu){
-                            $query->OrWhereIn("menu_mobile_masters.role_id",($menuRoleDetails)->pluck("roleId"));
-                            if($includeMenu->isNotEmpty())
-                            {
-                                $query->OrWhereIn("menu_mobile_masters.id",($includeMenu)->pluck("menu_id"));
-                            }
-                        });
-            if($excludeMenu->isNotEmpty())
-            {
-                $menuList = $menuList->whereNotIn("menu_mobile_masters.id",($excludeMenu)->pluck("menu_id"));
+                ->where("menu_mobile_masters.is_active", true)
+                ->where(function ($query) use ($menuRoleDetails, $includeMenu) {
+                    $query->OrWhereIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+                    if ($includeMenu->isNotEmpty()) {
+                        $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
+                    }
+                });
+            if ($excludeMenu->isNotEmpty()) {
+                $menuList = $menuList->whereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
             }
-            $menuList = $menuList->get()->map(function($val){
+            $menuList = $menuList->get()->map(function ($val) use ($includeMenu) {
+                if ($test = $includeMenu->where("menu_id", $val->id)->first()) {
+                    $this->_UserMenuMobileInclude->adjustMaster($val, $test);
+                }
                 return $val->only(
                     [
                         "id",
@@ -661,19 +662,18 @@ class UserController extends Controller
                     ]
                 );
             });
-            
-            $module = $this->_ModuleMaster->select("id","module_name")->where("is_suspended",false)->OrderBy("id","ASC")->get();
+
+            $module = $this->_ModuleMaster->select("id", "module_name")->where("is_suspended", false)->OrderBy("id", "ASC")->get();
             $routList = collect();
-            foreach($module as $val)
-            {
+            foreach ($module as $val) {
                 $rout["layout"] = $val->module_name;
-                $rout["pages"] = $menuList->where("module_id",$val->id)->sortBy("serial")->values();
+                $rout["pages"] = $menuList->where("module_id", $val->id)->sortBy("serial")->values();
                 $routList->push($rout);
             }
-            
+
             $data['userDetails'] = $user;
             $data['userDetails']['role'] = $role;
-            $data["routes"]=$routList;
+            $data["routes"] = $routList;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", 010101, "1.0", responseTime(), "POST", $req->deviceId);
