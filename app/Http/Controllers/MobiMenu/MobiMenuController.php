@@ -25,7 +25,7 @@ class MobiMenuController extends Controller
      *          Create By   : Sandeep Bara
      *          Date        : 2024-01-20
      * 
-    */
+     */
 
     private $_MenuMobileMaster;
     private $_UserMenuMobileExclude;
@@ -57,23 +57,20 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍Add new Menu ✍===================
-    */
+     */
     public function addMenu(AddMenu $request)
     {
-        try{  
-            $this->begin(); 
-            if($test=$this->_MenuMobileMaster->where(["module_id"=>$request->moduleId,"menu_string"=>$request->menuName,"route"=>$request->path,"role_id"=>$request->roleId])->first())
-            {
+        try {
+            $this->begin();
+            if ($test = $this->_MenuMobileMaster->where(["module_id" => $request->moduleId, "menu_string" => $request->menuName, "route" => $request->path, "role_id" => $request->roleId])->first()) {
                 throw new Exception("This Menu Is Already Added");
-            }   
-            if(!$this->_MenuMobileMaster->store($request))
-            {
+            }
+            if (!$this->_MenuMobileMaster->store($request)) {
                 throw new Exception("Some Error Occurs On Storing Data");
             }
             $this->commit();
             return responseMsg(true, "Menu Added", "");
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -81,19 +78,17 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍Add new Menu ✍===================
-    */
+     */
     public function editMenu(UpdateMenu $request)
     {
-        try{  
-            $this->begin();  
-            if(!$this->_MenuMobileMaster->edit($request))
-            {
+        try {
+            $this->begin();
+            if (!$this->_MenuMobileMaster->edit($request)) {
                 throw new Exception("Some Error Occurse On Editing Data");
             }
             $this->commit();
             return responseMsg(true, "Menu updated", "");
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -102,69 +97,60 @@ class MobiMenuController extends Controller
 
     /**
      * =================📖 List of Parent Menu📖==================
-    */
+     */
     public function getParentMenuList(Request $request)
     {
-        try{
+        try {
             $data = $this->_MenuMobileMaster->metaDtls()
-                    ->where("menu_mobile_masters.parent_id",0);
-            if($request->moduleId)
-            {
-                $data->where("menu_mobile_masters.module_id",$request->moduleId) ;
+                ->where("menu_mobile_masters.parent_id", 0);
+            if ($request->moduleId) {
+                $data->where("menu_mobile_masters.module_id", $request->moduleId);
             }
-            if(isset($request->status))
-            {
-                $data->where("menu_mobile_masters.is_active",$request->status) ;
+            if (isset($request->status)) {
+                $data->where("menu_mobile_masters.is_active", $request->status);
+            } else {
+                $data->where("menu_mobile_masters.is_active", true);
             }
-            else{
-                $data->where("menu_mobile_masters.is_active",true) ;
-            }
-            if($request->key)
-            {
+            if ($request->key) {
                 $key = trim($request->key);
-                $data->where(function($query)use($key){
+                $data->where(function ($query) use ($key) {
                     $query->orwhere('menu_mobile_masters.menu_string', 'ILIKE', '%' . $key . '%')
                         ->orwhere('menu_mobile_masters.route', 'ILIKE', '%' . $key . '%')
                         ->orwhere("menu_mobile_masters.icon", 'ILIKE', '%' . $key . '%');
-                }) ;
+                });
             }
-            
-            $data = $data->Orderby("menu_mobile_masters.id","ASC")
-                    ->OrderBy("menu_mobile_masters.module_id","ASC")
-                    ->get();
-            
+
+            $data = $data->Orderby("menu_mobile_masters.id", "ASC")
+                ->OrderBy("menu_mobile_masters.module_id", "ASC")
+                ->get();
+
             return responseMsg(true, "All Parent Menu", $data);
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
 
     /**
      * ==================📑 List Of All Menu 📑===================
-    */
+     */
     public function getMenuList(Request $request)
     {
-        try{
+        try {
 
             $data = $this->_MenuMobileMaster->metaDtls();
-            if($request->moduleId)
-            {
-                $data->where("menu_mobile_masters.module_id",$request->moduleId) ;
+            if ($request->moduleId) {
+                $data->where("menu_mobile_masters.module_id", $request->moduleId);
             }
-            if(isset($request->status))
-            {
-                $data->where("menu_mobile_masters.is_active",$request->status) ;
+            if (isset($request->status)) {
+                $data->where("menu_mobile_masters.is_active", $request->status);
             }
-            if($request->key)
-            {
+            if ($request->key) {
                 $key = trim($request->key);
-                $data->where(function($query)use($key){
+                $data->where(function ($query) use ($key) {
                     $query->orwhere('menu_mobile_masters.menu_string', 'ILIKE', '%' . $key . '%')
                         ->orwhere('menu_mobile_masters.route', 'ILIKE', '%' . $key . '%')
                         ->orwhere("menu_mobile_masters.icon", 'ILIKE', '%' . $key . '%');
-                }) ;
+                });
             }
             $perPage = $request->perPage ? $request->perPage : 10;
             $paginator = $data->paginate($perPage);
@@ -172,37 +158,35 @@ class MobiMenuController extends Controller
                 "current_page" => $paginator->currentPage(),
                 "last_page" => $paginator->lastPage(),
                 "data" => $paginator->items(),
-                "total" => $paginator->total(),            
+                "total" => $paginator->total(),
             ];
             return responseMsg(true, "Menu List", remove_null($list));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
 
     /**
      * ==================📑 Dtl Of Menu 📑===================
-    */
+     */
     public function menuDtl(Request $request)
     {
-        $validator = Validator::make($request->all(),
+        $validator = Validator::make(
+            $request->all(),
             [
-                "id"=>"required|digits_between:0,9999999999",
+                "id" => "required|digits_between:0,9999999999",
             ]
         );
         if ($validator->fails()) {
             return responseMsg(false, $validator->errors(), "");
         }
-        try{  
-            $dtls = $this->_MenuMobileMaster->dtls($request->id); 
-            if(!$dtls)
-            {
+        try {
+            $dtls = $this->_MenuMobileMaster->dtls($request->id);
+            if (!$dtls) {
                 throw new Exception("Invalid Id Pass");
             }
             return responseMsg(true, "Menu Dtls", remove_null($dtls));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
@@ -213,21 +197,19 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍ Add new Exclude Menu ✍===================
-    */
+     */
     public function addUserExcludeMenu(AddUserMenuExclude $request)
     {
-        try{  
-            $this->begin();              
-            if(!$this->_UserMenuMobileExclude->store($request))
-            {
+        try {
+            $this->begin();
+            if (!$this->_UserMenuMobileExclude->store($request)) {
                 throw new Exception("Some Error Occurs On Add Data");
             }
             $user = User::find($request->userId);
             $menu = $this->_MenuMobileMaster->find($request->menuId);
             $this->commit();
-            return responseMsg(true, ($menu->menu_string??"")." Menu Is Exclude For ".($user->name??""), "");
-        }
-        catch (Exception $e) {
+            return responseMsg(true, ($menu->menu_string ?? "") . " Menu Is Exclude For " . ($user->name ?? ""), "");
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -235,20 +217,18 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍ Edit Exclude Menu ✍===================
-    */
+     */
 
     public function editUserExcludeMenu(UpdateUserMenuExclude $request)
     {
-        try{  
-            $this->begin();              
-            if(!$this->_UserMenuMobileExclude->edit($request))
-            {
+        try {
+            $this->begin();
+            if (!$this->_UserMenuMobileExclude->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
             $this->commit();
             return responseMsg(true, "Update Menu Exclude", "");
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -256,21 +236,18 @@ class MobiMenuController extends Controller
 
     public function userExcludeMenuList(Request $request)
     {
-        try{
+        try {
 
             $data = $this->_UserMenuMobileExclude->metaDtls();
-            if($request->moduleId)
-            {
-                $data->where("menu_mobile_masters.module_id",$request->moduleId) ;
+            if ($request->moduleId) {
+                $data->where("menu_mobile_masters.module_id", $request->moduleId);
             }
-            if(isset($request->status))
-            {
-                $data->where("user_menu_mobile_excludes.is_active",$request->status) ;
+            if (isset($request->status)) {
+                $data->where("user_menu_mobile_excludes.is_active", $request->status);
             }
-            if($request->key)
-            {
+            if ($request->key) {
                 $key = trim($request->key);
-                $data->where(function($query)use($key){
+                $data->where(function ($query) use ($key) {
                     $query->orwhere('menu_mobile_masters.menu_string', 'ILIKE', '%' . $key . '%')
                         ->orwhere('menu_mobile_masters.route', 'ILIKE', '%' . $key . '%')
                         ->orwhere("menu_mobile_masters.icon", 'ILIKE', '%' . $key . '%')
@@ -285,34 +262,32 @@ class MobiMenuController extends Controller
                 "current_page" => $paginator->currentPage(),
                 "last_page" => $paginator->lastPage(),
                 "data" => $paginator->items(),
-                "total" => $paginator->total(),            
+                "total" => $paginator->total(),
             ];
             return responseMsg(true, "User Menu Exclude List", remove_null($list));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
 
     public function userExcludeMenuDtl(Request $request)
     {
-        $validator = Validator::make($request->all(),
+        $validator = Validator::make(
+            $request->all(),
             [
-                "id"=>"required|digits_between:0,9999999999",
+                "id" => "required|digits_between:0,9999999999",
             ]
         );
         if ($validator->fails()) {
             return responseMsg(false, $validator->errors(), "");
         }
-        try{  
-            $dtls = $this->_UserMenuMobileExclude->dtls($request->id); 
-            if(!$dtls)
-            {
+        try {
+            $dtls = $this->_UserMenuMobileExclude->dtls($request->id);
+            if (!$dtls) {
                 throw new Exception("Invalid Id Pass");
             }
             return responseMsg(true, "Menu Dtls", remove_null($dtls));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
@@ -322,21 +297,19 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍ Add new Include Menu ✍===================
-    */
+     */
     public function addUserIncludeMenu(AddUserMenuExclude $request)
     {
-        try{  
-            $this->begin();              
-            if(!$this->_UserMenuMobileExclude->store($request))
-            {
+        try {
+            $this->begin();
+            if (!$this->_UserMenuMobileExclude->store($request)) {
                 throw new Exception("Some Error Occurs On Add Data");
             }
             $user = User::find($request->userId);
             $menu = $this->_MenuMobileMaster->find($request->menuId);
             $this->commit();
-            return responseMsg(true, ($menu->menu_string??"")." Menu Is Include For ".($user->name??""), "");
-        }
-        catch (Exception $e) {
+            return responseMsg(true, ($menu->menu_string ?? "") . " Menu Is Include For " . ($user->name ?? ""), "");
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -344,20 +317,18 @@ class MobiMenuController extends Controller
 
     /**
      * ==================✍ Edit Include Menu ✍===================
-    */
+     */
 
     public function editUserIncludeMenu(UpdateUserMenuExclude $request)
     {
-        try{  
-            $this->begin();              
-            if(!$this->_UserMenuMobileExclude->edit($request))
-            {
+        try {
+            $this->begin();
+            if (!$this->_UserMenuMobileExclude->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
             $this->commit();
             return responseMsg(true, "Update Menu Include", "");
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->rollback();
             return responseMsg(false, $e->getMessage(), "",);
         }
@@ -365,21 +336,18 @@ class MobiMenuController extends Controller
 
     public function userIncludeMenuList(Request $request)
     {
-        try{
+        try {
 
             $data = $this->_UserMenuMobileExclude->metaDtls();
-            if($request->moduleId)
-            {
-                $data->where("menu_mobile_masters.module_id",$request->moduleId) ;
+            if ($request->moduleId) {
+                $data->where("menu_mobile_masters.module_id", $request->moduleId);
             }
-            if(isset($request->status))
-            {
-                $data->where("user_menu_mobile_includes.is_active",$request->status) ;
+            if (isset($request->status)) {
+                $data->where("user_menu_mobile_includes.is_active", $request->status);
             }
-            if($request->key)
-            {
+            if ($request->key) {
                 $key = trim($request->key);
-                $data->where(function($query)use($key){
+                $data->where(function ($query) use ($key) {
                     $query->orwhere('menu_mobile_masters.menu_string', 'ILIKE', '%' . $key . '%')
                         ->orwhere('menu_mobile_masters.route', 'ILIKE', '%' . $key . '%')
                         ->orwhere("menu_mobile_masters.icon", 'ILIKE', '%' . $key . '%')
@@ -394,44 +362,43 @@ class MobiMenuController extends Controller
                 "current_page" => $paginator->currentPage(),
                 "last_page" => $paginator->lastPage(),
                 "data" => $paginator->items(),
-                "total" => $paginator->total(),            
+                "total" => $paginator->total(),
             ];
             return responseMsg(true, "User Menu Include List", remove_null($list));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
 
     public function userIncludeMenuDtl(Request $request)
     {
-        $validator = Validator::make($request->all(),
+        $validator = Validator::make(
+            $request->all(),
             [
-                "id"=>"required|digits_between:0,9999999999",
+                "id" => "required|digits_between:0,9999999999",
             ]
         );
         if ($validator->fails()) {
             return responseMsg(false, $validator->errors(), "");
         }
-        try{  
-            $dtls = $this->_UserMenuMobileExclude->dtls($request->id); 
-            if(!$dtls)
-            {
+        try {
+            $dtls = $this->_UserMenuMobileExclude->dtls($request->id);
+            if (!$dtls) {
                 throw new Exception("Invalid Id Pass");
             }
             return responseMsg(true, "Menu Dtls", remove_null($dtls));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return responseMsg(false, $e->getMessage(), "",);
         }
     }
 
     public function UserMenuListForExcludeInclude(Request $request)
     {
-        $validator = Validator::make($request->all(),
+        $validator = Validator::make(
+            $request->all(),
             [
-                "userId"=>"required|digits_between:0,99999999999",
-                "excludeIncludeType"=>"required|string|in:Exclude,Include",
+                "userId" => "required|digits_between:0,99999999999",
+                "excludeIncludeType" => "required|string|in:Exclude,Include",
             ]
         );
         if ($validator->fails()) {
@@ -440,47 +407,43 @@ class MobiMenuController extends Controller
         try {
             $user = Auth()->user();
             $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($request->userId);
-            
+
             $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
-                          ->where("user_menu_mobile_includes.user_id",$request->userId)
-                          ->where("user_menu_mobile_includes.is_active",true)
-                          ->get();
+                ->where("user_menu_mobile_includes.user_id", $request->userId)
+                ->where("user_menu_mobile_includes.is_active", true)
+                ->get();
             $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
-                        ->where("user_menu_mobile_excludes.user_id",$request->userId)
-                        ->where("user_menu_mobile_excludes.is_active",true)
-                        ->get();
-            
+                ->where("user_menu_mobile_excludes.user_id", $request->userId)
+                ->where("user_menu_mobile_excludes.is_active", true)
+                ->get();
+
             $menuList = $this->_MenuMobileMaster->metaDtls();
-            if($request->excludeIncludeType=="Exclude")
-            {
-                $menuList = $menuList->where(function($query)use($menuRoleDetails,$includeMenu){
-                    $query->OrWhereIn("menu_mobile_masters.role_id",($menuRoleDetails)->pluck("roleId"));
-                    if($includeMenu->isNotEmpty())
-                    {
-                        $query->OrWhereIn("menu_mobile_masters.id",($includeMenu)->pluck("menu_id"));
+            if ($request->excludeIncludeType == "Exclude") {
+                $menuList = $menuList->where(function ($query) use ($menuRoleDetails, $includeMenu) {
+                    $query->OrWhereIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+                    if ($includeMenu->isNotEmpty()) {
+                        $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }
                 });
             }
-                        
-            if($excludeMenu->isNotEmpty()&& $request->excludeIncludeType=="Include")
-            {
-                $menuList = $menuList->where(function($query)use($menuRoleDetails,$includeMenu,$excludeMenu){
-                    $query->OrWhereNotIn("menu_mobile_masters.role_id",($menuRoleDetails)->pluck("roleId"));
-                    if($includeMenu->isNotEmpty())
-                    {
-                        $query->OrWhereIn("menu_mobile_masters.id",($includeMenu)->pluck("menu_id"));
+
+            if ($excludeMenu->isNotEmpty() && $request->excludeIncludeType == "Include") {
+                $menuList = $menuList->where(function ($query) use ($menuRoleDetails, $includeMenu, $excludeMenu) {
+                    $query->OrWhereNotIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+                    if ($includeMenu->isNotEmpty()) {
+                        $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }
-                    if($excludeMenu->isNotEmpty())
-                    {
-                        $query->OrWhereIn("menu_mobile_masters.id",($excludeMenu)->pluck("menu_id"));
+                    if ($excludeMenu->isNotEmpty()) {
+                        $query->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
                     }
                 });
             }
-            $menuList = $menuList->get()->map(function($val){
+            $menuList = $menuList->get()->map(function ($val) {
                 return $val->only(
                     [
                         "id",
                         "role_id",
+                        "role_name",
                         "parent_id",
                         "module_id",
                         "serial",
@@ -497,10 +460,10 @@ class MobiMenuController extends Controller
                     ]
                 );
             });
-                        
-            return responseMsgs(true, $request->excludeIncludeType." Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
+
+            return responseMsgs(true, $request->excludeIncludeType . " Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, [$e->getMessage(),$e->getFile(),$e->getLine()], "", 010101, "1.0", responseTime(), "POST", $request->deviceId);
+            return responseMsgs(false, [$e->getMessage(), $e->getFile(), $e->getLine()], "", 010101, "1.0", responseTime(), "POST", $request->deviceId);
         }
     }
 }
