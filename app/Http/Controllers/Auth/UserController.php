@@ -630,7 +630,7 @@ class UserController extends Controller
             $menuList = $this->_MenuMobileMaster->metaDtls()
                 ->where("menu_mobile_masters.is_active", true)
                 ->where(function ($query) use ($menuRoleDetails, $includeMenu) {
-                    $query->OrWhereIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+                    $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
                     if ($includeMenu->isNotEmpty()) {
                         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }

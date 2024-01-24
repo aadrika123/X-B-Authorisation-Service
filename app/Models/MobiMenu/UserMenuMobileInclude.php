@@ -54,7 +54,7 @@ class UserMenuMobileInclude extends Model
         return self::select(
             "user_menu_mobile_includes.*",
             "users.name",
-            "menu_mobile_masters.role_id",
+            "menu_mobile_role_maps.role_id",
             "menu_mobile_masters.parent_id",
             "menu_mobile_masters.route",
             "menu_mobile_masters.menu_string",
@@ -62,17 +62,18 @@ class UserMenuMobileInclude extends Model
             "module_masters.module_name",
             "parents.menu_string AS parent_menu",
             DB::raw("
-                CASE when user_menu_mobile_includes.is_sidebar is null THEN menu_mobile_masters.is_sidebar ELSE user_menu_mobile_includes.is_sidebar END AS is_sidebar,
-                CASE when user_menu_mobile_includes.is_menu is null THEN menu_mobile_masters.is_menu ELSE user_menu_mobile_includes.is_menu END AS is_menu,
-                CASE when user_menu_mobile_includes.create is null THEN menu_mobile_masters.create ELSE user_menu_mobile_includes.create END AS create,
-                CASE when user_menu_mobile_includes.read is null THEN menu_mobile_masters.read ELSE user_menu_mobile_includes.read END AS read,
-                CASE when user_menu_mobile_includes.update is null THEN menu_mobile_masters.update ELSE user_menu_mobile_includes.update END AS update,
-                CASE when user_menu_mobile_includes.delete is null THEN menu_mobile_masters.delete ELSE user_menu_mobile_includes.delete END AS delete
+                CASE when user_menu_mobile_includes.is_sidebar is null THEN menu_mobile_role_maps.is_sidebar ELSE user_menu_mobile_includes.is_sidebar END AS is_sidebar,
+                CASE when user_menu_mobile_includes.is_menu is null THEN menu_mobile_role_maps.is_menu ELSE user_menu_mobile_includes.is_menu END AS is_menu,
+                CASE when user_menu_mobile_includes.create is null THEN menu_mobile_role_maps.create ELSE user_menu_mobile_includes.create END AS create,
+                CASE when user_menu_mobile_includes.read is null THEN menu_mobile_role_maps.read ELSE user_menu_mobile_includes.read END AS read,
+                CASE when user_menu_mobile_includes.update is null THEN menu_mobile_role_maps.update ELSE user_menu_mobile_includes.update END AS update,
+                CASE when user_menu_mobile_includes.delete is null THEN menu_mobile_role_maps.delete ELSE user_menu_mobile_includes.delete END AS delete
             ")
         )
             ->leftjoin("users", "users.id", "user_menu_mobile_includes.user_id")
             ->leftjoin("menu_mobile_masters", "menu_mobile_masters.id", "user_menu_mobile_includes.menu_id")
-            ->leftjoin("wf_roles", "wf_roles.id", "menu_mobile_masters.role_id")
+            ->leftjoin("menu_mobile_role_maps", "menu_mobile_role_maps.menu_id", "menu_mobile_masters.id")
+            ->leftjoin("wf_roles", "wf_roles.id", "menu_mobile_role_maps.role_id")
             ->leftjoin("module_masters", "module_masters.id", "menu_mobile_masters.module_id")
             ->leftjoin("menu_mobile_masters AS parents", "parents.id", "menu_mobile_masters.parent_id");
     }

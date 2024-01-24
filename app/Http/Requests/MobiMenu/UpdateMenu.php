@@ -7,7 +7,6 @@ class UpdateMenu extends AddMenu
     public function __construct()
     {
         parent::__construct();
-
     }
 
     /**
@@ -18,8 +17,11 @@ class UpdateMenu extends AddMenu
     public function rules(): array
     {
         $rules = parent::rules();
-        $rules["id"] ="required|digits_between:0,9999999999";
-        $rules["status"] ="nullable|boolean";
+        $rules["id"] = "required|digits_between:0,9999999999";
+        $rules["status"] = "nullable|boolean";
+        if ($this->id) {
+            $this->merge(["menuId" => $this->id]);
+        }
         return $rules;
     }
 }

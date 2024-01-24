@@ -9,6 +9,7 @@ use App\Http\Requests\MobiMenu\UpdateMenu;
 use App\Http\Requests\MobiMenu\UpdateUserMenuExclude;
 use App\Models\Auth\User;
 use App\Models\MobiMenu\MenuMobileMaster;
+use App\Models\MobiMenu\MenuMobileRoleMap;
 use App\Models\MobiMenu\UserMenuMobileExclude;
 use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\Workflows\WfRole;
@@ -30,10 +31,13 @@ class MobiMenuController extends Controller
     private $_MenuMobileMaster;
     private $_UserMenuMobileExclude;
     private $_UserMenuMobileInclude;
+    private $_MenuMobileRoleMap;
     private $_WfRoleusermap;
     public function __construct()
     {
+        DB::enableQueryLog();
         $this->_MenuMobileMaster        = new MenuMobileMaster();
+        $this_MenuMobileRoleMap         = new MenuMobileRoleMap();
         $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
         $this->_UserMenuMobileInclude   = new UserMenuMobileInclude();
         $this->_WfRoleusermap = new WfRoleusermap();
@@ -62,10 +66,20 @@ class MobiMenuController extends Controller
     {
         try {
             $this->begin();
-            if ($test = $this->_MenuMobileMaster->where(["module_id" => $request->moduleId, "menu_string" => $request->menuName, "route" => $request->path, "role_id" => $request->roleId])->first()) {
-                throw new Exception("This Menu Is Already Added");
+            $menuId = null;
+            $menuTest = $this->_MenuMobileMaster->where(["module_id" => $request->moduleId, "menu_string" => $request->menuName, "route" => $request->path])->first();
+            $menuId = $menuTest->id ?? null;
+            if (!$menuTest) {
+                $menuId = $this->_MenuMobileMaster->store($request);
             }
-            if (!$this->_MenuMobileMaster->store($request)) {
+            if (!$menuId) {
+                throw new Exception("Something Went Wrong");
+            }
+            if ($roleTest = $this->_MenuMobileRoleMap->where(["menu_id" => $menuId, "role_id" => $request->roleId])->first()) {
+                throw new Exception("This Menu Is Already Added For This Role");
+            }
+            $request->merge(["menuId" => $menuId]);
+            if (!$this->_MenuMobileRoleMap->store($request)) {
                 throw new Exception("Some Error Occurs On Storing Data");
             }
             $this->commit();
@@ -84,8 +98,16 @@ class MobiMenuController extends Controller
         try {
             $this->begin();
             if (!$this->_MenuMobileMaster->edit($request)) {
-                throw new Exception("Some Error Occurse On Editing Data");
+                throw new Exception("Some Error Occurs On Editing Data");
             }
+            $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId]);
+            $request->merge((["roleMenuId" => $roleMenuTest->id ?? null]));
+            if ($roleMenuTest && !$this->_MenuMobileRoleMap->edit($request)) {
+                throw new Exception("Some Error Occurs On Editing On Role Menu Map Data");
+            } elseif (!$this->_MenuMobileRoleMap->store($request)) {
+                throw new Exception("Something Went Wrong");
+            }
+
             $this->commit();
             return responseMsg(true, "Menu updated", "");
         } catch (Exception $e) {
@@ -152,6 +174,9 @@ class MobiMenuController extends Controller
                         ->orwhere("menu_mobile_masters.icon", 'ILIKE', '%' . $key . '%');
                 });
             }
+            $data->orderBy("menu_mobile_masters.id", "ASC")
+                ->orderBy("menu_mobile_masters.module_id", "ASC")
+                ->orderBy("wf_roles.id", "ASC");
             $perPage = $request->perPage ? $request->perPage : 10;
             $paginator = $data->paginate($perPage);
             $list = [
@@ -175,13 +200,14 @@ class MobiMenuController extends Controller
             $request->all(),
             [
                 "id" => "required|digits_between:0,9999999999",
+                "roleId" => "nullable|digits_between:0,9999999999"
             ]
         );
         if ($validator->fails()) {
             return responseMsg(false, $validator->errors(), "");
         }
         try {
-            $dtls = $this->_MenuMobileMaster->dtls($request->id);
+            $dtls = $this->_MenuMobileMaster->dtls($request->id, $request->roleId);
             if (!$dtls) {
                 throw new Exception("Invalid Id Pass");
             }
@@ -420,24 +446,25 @@ class MobiMenuController extends Controller
             $menuList = $this->_MenuMobileMaster->metaDtls();
             if ($request->excludeIncludeType == "Exclude") {
                 $menuList = $menuList->where(function ($query) use ($menuRoleDetails, $includeMenu) {
-                    $query->OrWhereIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+                    $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
                     if ($includeMenu->isNotEmpty()) {
                         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }
                 });
             }
 
-            if ($excludeMenu->isNotEmpty() && $request->excludeIncludeType == "Include") {
-                $menuList = $menuList->where(function ($query) use ($menuRoleDetails, $includeMenu, $excludeMenu) {
-                    $query->OrWhereNotIn("menu_mobile_masters.role_id", ($menuRoleDetails)->pluck("roleId"));
+            if ($request->excludeIncludeType == "Include") {
+                $menuList = $menuList->whereNot(function ($query) use ($menuRoleDetails, $includeMenu, $excludeMenu) {
+                    $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
                     if ($includeMenu->isNotEmpty()) {
                         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }
-                    if ($excludeMenu->isNotEmpty()) {
-                        $query->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
-                    }
                 });
+                if ($excludeMenu->isNotEmpty()) {
+                    $menuList = $menuList->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+                }
             }
+
             $menuList = $menuList->get()->map(function ($val) {
                 return $val->only(
                     [
@@ -460,6 +487,7 @@ class MobiMenuController extends Controller
                     ]
                 );
             });
+            // dd(DB::getQueryLog());
 
             return responseMsgs(true, $request->excludeIncludeType . " Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
         } catch (Exception $e) {
