@@ -646,6 +646,7 @@ class UserController extends Controller
                     [
                         "id",
                         "role_id",
+                        "role_name",
                         "parent_id",
                         "module_id",
                         "serial",
