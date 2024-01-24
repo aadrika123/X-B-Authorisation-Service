@@ -68,7 +68,7 @@ class MobiMenuController extends Controller
             }   
             if(!$this->_MenuMobileMaster->store($request))
             {
-                throw new Exception("Some Error Occurse On Storing Data");
+                throw new Exception("Some Error Occurs On Storing Data");
             }
             $this->commit();
             return responseMsg(true, "Menu Added", "");
