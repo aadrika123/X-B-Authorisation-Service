@@ -84,6 +84,28 @@ class UserMenuMobileInclude extends Model
             ->first();
     }
 
+    public function unionDataWithRoleMenu()
+    {
+        return self::select(DB::raw(
+            "menu_mobile_masters.*,
+            null AS role_menu_map_id,
+            user_menu_mobile_includes.is_sidebar,
+            user_menu_mobile_includes.is_menu,
+            user_menu_mobile_includes.create,
+            user_menu_mobile_includes.read,
+            user_menu_mobile_includes.update,
+            user_menu_mobile_includes.delete,
+            null as role_id,
+            user_menu_mobile_includes.is_active,
+            null as role_name,
+            module_masters.module_name,
+            parents.menu_string AS parent_menu"
+        ))
+            ->join("menu_mobile_masters", "menu_mobile_masters.id", "user_menu_mobile_includes.menu_id")
+            ->leftjoin("module_masters", "module_masters.id", "menu_mobile_masters.module_id")
+            ->leftjoin("menu_mobile_masters as parents", "parents.id", "menu_mobile_masters.parent_id");
+    }
+
     public function adjustMaster(MenuMobileMaster $obj, $newObj)
     {
         $obj->is_sidebar    = !is_null($newObj->is_sidebar) ? $newObj->is_sidebar : $obj->is_sidebar;
