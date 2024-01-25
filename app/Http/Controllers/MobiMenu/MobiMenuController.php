@@ -100,11 +100,13 @@ class MobiMenuController extends Controller
             if (!$this->_MenuMobileMaster->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
-            $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId])->first();
 
+            $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId])->first();
             $request->merge((["roleMenuId" => $roleMenuTest->id ?? null]));
-            if ($roleMenuTest && !$this->_MenuMobileRoleMap->edit($request)) {
-                throw new Exception("Some Error Occurs On Editing On Role Menu Map Data");
+            if ($roleMenuTest) {
+                if (!$this->_MenuMobileRoleMap->edit($request)) {
+                    throw new Exception("Some Error Occurs On Editing On Role Menu Map Data");
+                }
             } elseif (!$this->_MenuMobileRoleMap->store($request)) {
                 throw new Exception("Something Went Wrong");
             }
