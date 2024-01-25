@@ -52,6 +52,7 @@ class MenuMobileMaster extends Model
             "menu_mobile_role_maps.update",
             "menu_mobile_role_maps.delete",
             "menu_mobile_role_maps.role_id",
+            "menu_mobile_role_maps.is_active",
             "wf_roles.role_name",
             "module_masters.module_name",
             "parents.menu_string AS parent_menu"
