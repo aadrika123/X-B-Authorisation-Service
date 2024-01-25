@@ -97,6 +97,12 @@ class MobiMenuController extends Controller
     {
         try {
             $this->begin();
+
+            $childeTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "is_active" => true])->get()->count("id");
+
+            if (isset($request->menuStatus) && !$request->menuStatus && $childeTest <= 1) {
+                $request->merge(["menuStatus" => $request->status]);
+            }
             if (!$this->_MenuMobileMaster->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
@@ -104,13 +110,13 @@ class MobiMenuController extends Controller
             $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId])->first();
             $request->merge((["roleMenuId" => $roleMenuTest->id ?? null]));
             if ($roleMenuTest) {
-                if (!$this->_MenuMobileRoleMap->edit($request)) {
-                    throw new Exception("Some Error Occurs On Editing On Role Menu Map Data");
-                }
-            } elseif (!$this->_MenuMobileRoleMap->store($request)) {
+                $roleMapId = $this->_MenuMobileRoleMap->edit($request);
+            } else {
+                $roleMapId = $this->_MenuMobileRoleMap->store($request);
+            }
+            if (!$roleMapId) {
                 throw new Exception("Something Went Wrong");
             }
-
             $this->commit();
             return responseMsg(true, "Menu updated", "");
         } catch (Exception $e) {

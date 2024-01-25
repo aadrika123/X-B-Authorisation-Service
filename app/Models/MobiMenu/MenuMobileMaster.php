@@ -34,8 +34,8 @@ class MenuMobileMaster extends Model
             "route"         =>  $data->path ?? null,
             "icon"          =>  $data->icon ?? null,
         ];
-        if (isset($data->status)) {
-            $inputs["is_active"] = $data->status;
+        if (isset($data->menuStatus)) {
+            $inputs["is_active"] = $data->menuStatus;
         }
         return self::where("id", $data->id)->update($inputs);
     }
