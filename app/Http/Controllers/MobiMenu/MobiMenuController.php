@@ -461,17 +461,20 @@ class MobiMenuController extends Controller
                     }
                 });
             }
-
+            // dd($menuRoleDetails);
             if ($request->excludeIncludeType == "Include") {
-                $menuList = $menuList->whereNot(function ($query) use ($menuRoleDetails, $includeMenu, $excludeMenu) {
-                    $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
+                if ($excludeMenu->isNotEmpty()) {
+                    $menuList = $menuList->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+                }
+                $menuList = $menuList->whereNot(function ($query) use ($menuRoleDetails, $includeMenu) {
+                    $roleMenuId = $this->_MenuMobileRoleMap->select(DB::raw("DISTINCT(menu_id) AS menu_id"))
+                        ->whereIn("role_id", ($menuRoleDetails)->pluck("roleId"))
+                        ->get();
+                    $query->WhereIN("menu_mobile_masters.id", $roleMenuId->pluck("menu_id"));
                     if ($includeMenu->isNotEmpty()) {
                         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     }
                 });
-                if ($excludeMenu->isNotEmpty()) {
-                    $menuList = $menuList->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
-                }
             }
 
             $menuList = $menuList->get()->map(function ($val) {
@@ -496,7 +499,6 @@ class MobiMenuController extends Controller
                     ]
                 );
             });
-            // dd(DB::getQueryLog());
 
             return responseMsgs(true, $request->excludeIncludeType . " Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
         } catch (Exception $e) {
