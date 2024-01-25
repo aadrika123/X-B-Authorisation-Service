@@ -337,7 +337,7 @@ class MobiMenuController extends Controller
     {
         try {
             $this->begin();
-            if (!$this->_UserMenuMobileExclude->store($request)) {
+            if (!$this->_UserMenuMobileInclude->store($request)) {
                 throw new Exception("Some Error Occurs On Add Data");
             }
             $user = User::find($request->userId);
@@ -358,7 +358,7 @@ class MobiMenuController extends Controller
     {
         try {
             $this->begin();
-            if (!$this->_UserMenuMobileExclude->edit($request)) {
+            if (!$this->_UserMenuMobileInclude->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
             $this->commit();
@@ -373,7 +373,7 @@ class MobiMenuController extends Controller
     {
         try {
 
-            $data = $this->_UserMenuMobileExclude->metaDtls();
+            $data = $this->_UserMenuMobileInclude->metaDtls();
             if ($request->moduleId) {
                 $data->where("menu_mobile_masters.module_id", $request->moduleId);
             }
@@ -417,7 +417,7 @@ class MobiMenuController extends Controller
             return responseMsg(false, $validator->errors(), "");
         }
         try {
-            $dtls = $this->_UserMenuMobileExclude->dtls($request->id);
+            $dtls = $this->_UserMenuMobileInclude->dtls($request->id);
             if (!$dtls) {
                 throw new Exception("Invalid Id Pass");
             }
