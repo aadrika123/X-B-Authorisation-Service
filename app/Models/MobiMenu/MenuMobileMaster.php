@@ -45,6 +45,12 @@ class MenuMobileMaster extends Model
         return self::select(
             "menu_mobile_masters.*",
             "menu_mobile_role_maps.id AS role_menu_map_id",
+            "menu_mobile_role_maps.is_sidebar",
+            "menu_mobile_role_maps.is_menu",
+            "menu_mobile_role_maps.create",
+            "menu_mobile_role_maps.read",
+            "menu_mobile_role_maps.update",
+            "menu_mobile_role_maps.delete",
             "menu_mobile_role_maps.role_id",
             "wf_roles.role_name",
             "module_masters.module_name",
