@@ -37,7 +37,7 @@ class MobiMenuController extends Controller
     {
         DB::enableQueryLog();
         $this->_MenuMobileMaster        = new MenuMobileMaster();
-        $this_MenuMobileRoleMap         = new MenuMobileRoleMap();
+        $this->_MenuMobileRoleMap         = new MenuMobileRoleMap();
         $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
         $this->_UserMenuMobileInclude   = new UserMenuMobileInclude();
         $this->_WfRoleusermap = new WfRoleusermap();
@@ -100,7 +100,8 @@ class MobiMenuController extends Controller
             if (!$this->_MenuMobileMaster->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing Data");
             }
-            $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId]);
+            $roleMenuTest = $this->_MenuMobileRoleMap->where(["menu_id" => $request->menuId, "role_id" => $request->roleId])->first();
+
             $request->merge((["roleMenuId" => $roleMenuTest->id ?? null]));
             if ($roleMenuTest && !$this->_MenuMobileRoleMap->edit($request)) {
                 throw new Exception("Some Error Occurs On Editing On Role Menu Map Data");
@@ -112,7 +113,7 @@ class MobiMenuController extends Controller
             return responseMsg(true, "Menu updated", "");
         } catch (Exception $e) {
             $this->rollback();
-            return responseMsg(false, $e->getMessage(), "",);
+            return responseMsg(false, [$e->getMessage(), $e->getFile(), $e->getLine()], "",);
         }
     }
 
