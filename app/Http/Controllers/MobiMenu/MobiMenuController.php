@@ -463,10 +463,10 @@ class MobiMenuController extends Controller
                     //     $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
                     // }
                 });
+                $menuList = $menuList->union($userIncludeMenu);
                 if ($excludeMenu->isNotEmpty()) {
                     $menuList = $menuList->WhereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
                 }
-                $menuList = $menuList->union($userIncludeMenu);
             }
             // dd($menuRoleDetails);
             if ($request->excludeIncludeType == "Include") {
