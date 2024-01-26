@@ -459,10 +459,13 @@ class MobiMenuController extends Controller
             if ($request->excludeIncludeType == "Exclude") {
                 $menuList = $menuList->where(function ($query) use ($menuRoleDetails, $excludeMenu) {
                     $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
-                    if ($excludeMenu->isNotEmpty()) {
-                        $query->OrWhereIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
-                    }
+                    // if ($excludeMenu->isNotEmpty()) {
+                    //     $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
+                    // }
                 });
+                if ($excludeMenu->isNotEmpty()) {
+                    $menuList = $menuList->WhereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+                }
                 $menuList = $menuList->union($userIncludeMenu);
             }
             // dd($menuRoleDetails);
