@@ -442,6 +442,7 @@ class MobiMenuController extends Controller
         try {
             $user = Auth()->user();
             $userId = $request->userId;
+            $excludeIncludeType = $request->excludeIncludeType;
             $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($userId);
 
             $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
@@ -462,7 +463,7 @@ class MobiMenuController extends Controller
                 ->where("user_menu_mobile_excludes.user_id", $userId)
                 ->where("user_menu_mobile_excludes.is_active", true);
 
-            if ($request->excludeIncludeType == "Exclude") {
+            if ($excludeIncludeType == "Exclude") {
                 $menuList = $menuList->WhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
                 $menuList = $menuList->union($userIncludeMenu);
                 if ($excludeMenu->isNotEmpty()) {
@@ -470,7 +471,7 @@ class MobiMenuController extends Controller
                 }
             }
             // dd($menuRoleDetails);
-            if ($request->excludeIncludeType == "Include") {
+            if ($excludeIncludeType == "Include") {
                 $sql = "(
                     select menu_mobile_masters.id as menu_id
                     from menu_mobile_masters
@@ -489,7 +490,12 @@ class MobiMenuController extends Controller
                 $menuList = $menuList->whereNotIn("menu_mobile_masters.id", $givenMenu);
             }
             DB::enableQueryLog();
-            $menuList = $menuList->get()->map(function ($val) {
+            $menuList = $menuList->get()->map(function ($val) use ($excludeIncludeType, $menuRoleDetails) {
+                if ($excludeIncludeType == "Include") {
+                    $val->role_id = $val->role_id ? $val->role_id : ($menuRoleDetails->first()->roleId ?? $val->role_id);
+                    $val->role_name = $val->role_name ? $val->role_name : ($menuRoleDetails->first()->roles ?? $val->role_name);
+                }
+
                 return $val->only(
                     [
                         "id",
