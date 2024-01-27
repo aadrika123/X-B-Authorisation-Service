@@ -28,6 +28,8 @@ use App\Models\MobiMenu\MenuMobileMaster;
 use App\Models\MobiMenu\UserMenuMobileExclude;
 use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\ModuleMaster;
+use App\Models\UlbWardMaster;
+use App\Models\Workflows\WfWardUser;
 
 use function PHPUnit\Framework\throwException;
 
@@ -618,6 +620,23 @@ class UserController extends Controller
                 $values = $value['roles'];
                 return $values;
             });
+            $permittedWards = UlbWardMaster::select("ulb_ward_masters.id", "ulb_ward_masters.ward_name")
+                ->join("wf_ward_users", "wf_ward_users.ward_id", "ulb_ward_masters.id")
+                ->where("wf_ward_users.is_suspended", false)
+                ->where("ulb_ward_masters.status", 1)
+                ->where("wf_ward_users.user_id", $user->id)
+                ->get()->map(function ($val) {
+                    preg_match_all('/([0-9]+|[a-zA-Z]+)/', $val->ward_name, $matches);
+                    $val->char = $matches[0][0] ?? "";
+                    $val->ints = $matches[0][1] ?? null;
+                    return $val;
+                });
+            // $permittedWards = collect($permittedWards)->sortBy(function ($item) {
+            //     // Extract the numeric part from the "ward_name"
+            //     preg_match('/\d+/', $item->ward_name, $matches);
+            //     return (int) ($matches[0] ?? "");
+            // })->values();
+            $permittedWards = collect($permittedWards->sortBy(["char", "ints"]))->values();
             $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
                 ->where("user_menu_mobile_includes.user_id", $user->id)
                 ->where("user_menu_mobile_includes.is_active", true)
@@ -641,15 +660,7 @@ class UserController extends Controller
             if ($includeMenu->isNotEmpty()) {
                 $menuList = $menuList->WhereNotIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
             }
-            // $t=>where(function ($query) use ($menuRoleDetails, $includeMenu) {
-            //     $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
-            //     if ($includeMenu->isNotEmpty()) {
-            //         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
-            //     }
-            // })
-            // if ($excludeMenu->isNotEmpty()) {
-            //     $menuList = $menuList->whereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
-            // }
+
             DB::enableQueryLog();
             $menuList = collect(($menuList->get())->toArray());
             foreach ($userIncludeMenu->toArray() as $val) {
@@ -688,8 +699,10 @@ class UserController extends Controller
             }
 
             $data['userDetails'] = $user;
+            $data['userDetails']["imgFullPath"] = trim($user->photo_relative_path . "/" . $user->photo, "/");
             $data['userDetails']['role'] = $role;
             $data["routes"] = $routList;
+            $data["permittedWard"] = $permittedWards;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", 010101, "1.0", responseTime(), "POST", $req->deviceId);
