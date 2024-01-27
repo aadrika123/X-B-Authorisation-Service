@@ -87,19 +87,19 @@ class UserMenuMobileExclude extends Model
     public function unionDataWithRoleMenu()
     {
         return self::select(DB::Raw(
-            "menu_mobile_masters.*",
-            "null AS role_menu_map_id",
-            "user_menu_mobile_excludes.is_sidebar",
-            "user_menu_mobile_excludes.is_menu",
-            "user_menu_mobile_excludes.create",
-            "user_menu_mobile_excludes.read",
-            "user_menu_mobile_excludes.update",
-            "user_menu_mobile_excludes.delete",
-            "null as role_id",
-            "user_menu_mobile_excludes.is_active",
-            "null as role_name",
-            "module_masters.module_name",
-            "parents.menu_string AS parent_menu"
+            "menu_mobile_masters.*,
+            null AS role_menu_map_id,
+            user_menu_mobile_excludes.is_sidebar,
+            user_menu_mobile_excludes.is_menu,
+            user_menu_mobile_excludes.create,
+            user_menu_mobile_excludes.read,
+            user_menu_mobile_excludes.update,
+            user_menu_mobile_excludes.delete,
+            null as role_id,
+            user_menu_mobile_excludes.is_active,
+            null as role_name,
+            module_masters.module_name,
+            parents.menu_string AS parent_menu"
         ))
             ->join("menu_mobile_masters", "menu_mobile_masters.id", "user_menu_mobile_excludes.menu_id")
             ->leftjoin("module_masters", "module_masters.id", "menu_mobile_masters.module_id")

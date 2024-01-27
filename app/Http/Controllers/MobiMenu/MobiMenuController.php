@@ -35,7 +35,7 @@ class MobiMenuController extends Controller
     private $_WfRoleusermap;
     public function __construct()
     {
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
         $this->_MenuMobileMaster        = new MenuMobileMaster();
         $this->_MenuMobileRoleMap         = new MenuMobileRoleMap();
         $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
@@ -428,6 +428,97 @@ class MobiMenuController extends Controller
     }
 
     public function UserMenuListForExcludeInclude(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                "userId" => "required|digits_between:0,99999999999",
+                "excludeIncludeType" => "required|string|in:Exclude,Include",
+            ]
+        );
+        if ($validator->fails()) {
+            return responseMsg(false, $validator->errors(), "");
+        }
+        try {
+            $user = Auth()->user();
+            $userId = $request->userId;
+            $menuRoleDetails = $this->_WfRoleusermap->getRoleDetailsByUserId($userId);
+
+            $includeMenu = $this->_UserMenuMobileInclude->metaDtls()
+                ->where("user_menu_mobile_includes.user_id", $userId)
+                ->where("user_menu_mobile_includes.is_active", true)
+                ->get();
+            $excludeMenu = $this->_UserMenuMobileExclude->metaDtls()
+                ->where("user_menu_mobile_excludes.user_id", $userId)
+                ->where("user_menu_mobile_excludes.is_active", true)
+                ->get();
+
+            $menuList = $this->_MenuMobileMaster->metaDtls();
+            $userIncludeMenu = $this->_UserMenuMobileInclude->unionDataWithRoleMenu()
+                ->where("user_menu_mobile_includes.user_id", $userId)
+                ->where("user_menu_mobile_includes.is_active", true);
+
+            $userExcludeMenu = $this->_UserMenuMobileExclude->unionDataWithRoleMenu()
+                ->where("user_menu_mobile_excludes.user_id", $userId)
+                ->where("user_menu_mobile_excludes.is_active", true);
+
+            if ($request->excludeIncludeType == "Exclude") {
+                $menuList = $menuList->WhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
+                $menuList = $menuList->union($userIncludeMenu);
+                if ($excludeMenu->isNotEmpty()) {
+                    $menuList = $menuList->WhereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+                }
+            }
+            // dd($menuRoleDetails);
+            if ($request->excludeIncludeType == "Include") {
+                $sql = "(
+                    select menu_mobile_masters.id as menu_id
+                    from menu_mobile_masters
+                    join menu_mobile_role_maps on menu_mobile_role_maps.menu_id= menu_mobile_masters.id
+                    where menu_mobile_role_maps.role_id in(" . (($menuRoleDetails)->implode("roleId", ",")) . ")
+                    order by menu_mobile_masters.id ASC
+                )
+                union(
+                    select menu_id
+                    from user_menu_mobile_includes
+                    where is_active = true
+                    and user_id =" . $userId . "
+                )";
+                $givenMenu = collect(DB::select($sql))->pluck("menu_id");
+                $menuList = $menuList->whereNotIn("menu_mobile_masters.id", $givenMenu);
+                $menuList = $menuList->union($userExcludeMenu);
+            }
+            DB::enableQueryLog();
+            $menuList = $menuList->get()->map(function ($val) {
+                return $val->only(
+                    [
+                        "id",
+                        "role_id",
+                        "role_name",
+                        "parent_id",
+                        "module_id",
+                        "serial",
+                        "menu_string",
+                        "route",
+                        "icon",
+                        "is_sidebar",
+                        "is_menu",
+                        "create",
+                        "read",
+                        "update",
+                        "delete",
+                        "module_name",
+                    ]
+                );
+            });
+            // dd(DB::getQueryLog(), ($menuRoleDetails)->pluck("roleId"));
+            return responseMsgs(true, $request->excludeIncludeType . " Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, [$e->getMessage(), $e->getFile(), $e->getLine()], "", 010101, "1.0", responseTime(), "POST", $request->deviceId);
+        }
+    }
+
+    public function UserMenuListForExcludeInclude3(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
