@@ -485,8 +485,8 @@ class MobiMenuController extends Controller
                     and user_id =" . $userId . "
                 )";
                 $givenMenu = collect(DB::select($sql))->pluck("menu_id");
-                $menuList = $menuList->whereNotIn("menu_mobile_masters.id", $givenMenu);
                 $menuList = $menuList->union($userExcludeMenu);
+                $menuList = $menuList->whereNotIn("menu_mobile_masters.id", $givenMenu);
             }
             DB::enableQueryLog();
             $menuList = $menuList->get()->map(function ($val) {
