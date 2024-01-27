@@ -511,7 +511,7 @@ class MobiMenuController extends Controller
                     ]
                 );
             });
-            // dd(DB::getQueryLog(), ($menuRoleDetails)->pluck("roleId"));
+            dd(DB::getQueryLog(), ($menuRoleDetails)->pluck("roleId"), $request->excludeIncludeType);
             return responseMsgs(true, $request->excludeIncludeType . " Menu List", $menuList, 010101, "1.0", responseTime(), "POST", $request->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, [$e->getMessage(), $e->getFile(), $e->getLine()], "", 010101, "1.0", responseTime(), "POST", $request->deviceId);

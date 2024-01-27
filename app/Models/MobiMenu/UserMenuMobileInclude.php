@@ -28,6 +28,7 @@ class UserMenuMobileInclude extends Model
         if ($test) {
             $inputs["is_active"] = true;
         }
+        UserMenuMobileExclude::where($inputs)->update(["is_active" => false]);
         return $test ? $test->update($inputs) : UserMenuMobileInclude::create($inputs)->id;
     }
 
@@ -46,6 +47,7 @@ class UserMenuMobileInclude extends Model
         if (isset($data->status)) {
             $inputs["is_active"] = $data->status;
         }
+        UserMenuMobileExclude::where($inputs)->update(["is_active" => false]);
         return self::where("id", $data->id)->update($inputs);
     }
 
