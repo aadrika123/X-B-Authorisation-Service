@@ -626,42 +626,57 @@ class UserController extends Controller
                 ->where("user_menu_mobile_excludes.user_id", $user->id)
                 ->where("user_menu_mobile_excludes.is_active", true)
                 ->get();
+            $userIncludeMenu = $this->_UserMenuMobileInclude->unionDataWithRoleMenu()
+                ->where("user_menu_mobile_includes.user_id", $user->id)
+                ->where("user_menu_mobile_includes.is_active", true)
+                ->get();
             DB::enablequerylog();
             $menuList = $this->_MenuMobileMaster->metaDtls()
                 ->where("menu_mobile_masters.is_active", true)
-                ->where(function ($query) use ($menuRoleDetails, $includeMenu) {
-                    $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
-                    if ($includeMenu->isNotEmpty()) {
-                        $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
-                    }
-                });
-            if ($excludeMenu->isNotEmpty()) {
-                $menuList = $menuList->whereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+                ->where(function ($query) {
+                    $query->OrWhere("menu_mobile_role_maps.is_active", true)
+                        ->orWhereNull("menu_mobile_role_maps.is_active");
+                })
+                ->WhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
+            if ($includeMenu->isNotEmpty()) {
+                $menuList = $menuList->WhereNotIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
             }
-            $menuList = $menuList->get()->map(function ($val) use ($includeMenu) {
-                if ($test = $includeMenu->where("menu_id", $val->id)->first()) {
-                    $this->_UserMenuMobileInclude->adjustMaster($val, $test);
-                }
-                return $val->only(
+            // $t=>where(function ($query) use ($menuRoleDetails, $includeMenu) {
+            //     $query->OrWhereIn("menu_mobile_role_maps.role_id", ($menuRoleDetails)->pluck("roleId"));
+            //     if ($includeMenu->isNotEmpty()) {
+            //         $query->OrWhereIn("menu_mobile_masters.id", ($includeMenu)->pluck("menu_id"));
+            //     }
+            // })
+            // if ($excludeMenu->isNotEmpty()) {
+            //     $menuList = $menuList->whereNotIn("menu_mobile_masters.id", ($excludeMenu)->pluck("menu_id"));
+            // }
+            DB::enableQueryLog();
+            $menuList = collect(($menuList->get())->toArray());
+            foreach ($userIncludeMenu->toArray() as $val) {
+                $menuList->push($val);
+            }
+            $menuList = collect($menuList->whereNotIn("id", ($excludeMenu)->pluck("menu_id"))->toArray());
+            $menuList = $menuList->map(function ($val) {
+
+                return
                     [
-                        "id",
-                        "role_id",
-                        "role_name",
-                        "parent_id",
-                        "module_id",
-                        "serial",
-                        "menu_string",
-                        "route",
-                        "icon",
-                        "is_sidebar",
-                        "is_menu",
-                        "create",
-                        "read",
-                        "update",
-                        "delete",
-                        "module_name",
-                    ]
-                );
+                        "id"        =>  $val["id"],
+                        "role_id"   =>  $val["role_id"],
+                        "role_name" =>  $val["role_name"],
+                        "parent_id" =>  $val["parent_id"],
+                        "module_id" =>  $val["module_id"],
+                        "serial"    =>  $val["serial"],
+                        "menu_string" =>  $val["menu_string"],
+                        "route"      =>  $val["route"],
+                        "icon"       =>  $val["icon"],
+                        "is_sidebar" =>  $val["is_sidebar"],
+                        "is_menu"    =>  $val["is_menu"],
+                        "create"     =>  $val["create"],
+                        "read"       =>  $val["read"],
+                        "update"     =>  $val["update"],
+                        "delete"     =>  $val["delete"],
+                        "module_name" =>  $val["module_name"],
+                    ];
             });
 
             $module = $this->_ModuleMaster->select("id", "module_name")->where("is_suspended", false)->OrderBy("id", "ASC")->get();
