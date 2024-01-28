@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RequestChangePssByToken;
 use App\Http\Requests\RequestOtpVerify;
 use App\Http\Requests\RequestSendOtpUpdate;
+use App\Mail\ForgotPassword;
 use App\MicroServices\IdGeneration;
 use App\Models\Auth\ActiveCitizen;
 use App\Models\Auth\User as AuthUser;
@@ -30,6 +31,7 @@ use Illuminate\Support\Facades\DB;
 use WpOrg\Requests\Auth;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class ThirdPartyController extends Controller
 {
@@ -55,7 +57,7 @@ class ThirdPartyController extends Controller
             ]);
             $mOtpRequest = new OtpRequest();
             $mTblSmsLog = new TblSmsLog();
-            
+
             $mobileNo    =  $request->mobileNo;
             if ($request->type == "Register") {
                 $userDetails = ActiveCitizen::where('mobile', $mobileNo)
@@ -176,12 +178,12 @@ class ThirdPartyController extends Controller
             $mobileNo  = $request->mobile;
             $userType = $request->userType;
             $otpType = 'Forgot Password';
-            if(!$email && !$mobileNo)
-            {
+            $request->merge(["strict" => true]);
+            if (!$email && !$mobileNo) {
                 throw new Exception("Invalid Data Given");
             }
             $userData = AuthUser::where('suspended', false)
-                ->orderBy('id','DESC');
+                ->orderBy('id', 'DESC');
             $userData = app(Pipeline::class)
                 ->send(
                     $userData
@@ -192,59 +194,64 @@ class ThirdPartyController extends Controller
                 ])
                 ->thenReturn()
                 ->first();
-            if($userType=="Citizen")
-            {
-                $userData = ActiveCitizen::orderBy('id','DESC');
+            if ($userType == "Citizen") {
+                $userData = ActiveCitizen::orderBy('id', 'DESC');
                 $userData = app(Pipeline::class)
-                ->send(
-                    $userData
-                )
-                ->through([
-                    CitizenSearchByEmail::class,
-                    CitizenSearchByMobile::class
-                ])
-                ->thenReturn()
-                ->first();
-            }            
-            if(!$userData){
+                    ->send(
+                        $userData
+                    )
+                    ->through([
+                        CitizenSearchByEmail::class,
+                        CitizenSearchByMobile::class
+                    ])
+                    ->thenReturn()
+                    ->first();
+            }
+            if (!$userData) {
                 throw new Exception("Data Not Find");
             }
             $generateOtp = $this->generateOtp();
             $request->merge([
-                "mobileNo"=>$request->mobile,
-                "type"=>$otpType,
-                "otpType"=>$otpType,
+                "mobileNo" => $request->mobile,
+                "type" => $otpType,
+                "otpType" => $otpType,
                 "Otp" => $generateOtp,
-                "userId"=>$userData->id,
-                "userType"=>$userData->gettable(),
+                "userId" => $userData->id,
+                "userType" => $userData->gettable(),
             ]);
             $smsDta = OTP($request->all());
-            if($mobileNo &&  !$smsDta["status"])
-            {
-                throw new Exception("Some Error Occures Server On Otp Sending");
+            if ($mobileNo &&  !$smsDta["status"]) {
+                throw new Exception("Some Error Occurs Server On Otp Sending");
             }
-            $sms = $smsDta["sms"]??"";
-            $temp_id = $smsDta["temp_id"]??"";            
+            $sms = $smsDta["sms"] ?? "";
+            $temp_id = $smsDta["temp_id"] ?? "";
             $sendsOn = [];
-            if($mobileNo){
-                $response = send_sms($mobileNo, $sms, $temp_id);         
-                $sendsOn[]="mobile No.";
+            if ($mobileNo) {
+                $response = send_sms($mobileNo, $sms, $temp_id);
+                $sendsOn[] = "mobile No.";
             }
-            if($email)
-            {
-                $sendsOn[]="Email";
+            if ($email) {
+                $sendsOn[] = "Email";
+                $details = [
+                    "title" => "Password reset information",
+                    "name"  => $userData->getTable() != "users" ? $userData->user_name : $userData->name,
+                    "Otp" => $request->Otp
+                ];
+                try {
+                    Mail::to($userData->email)->send(new ForgotPassword($details));
+                } catch (Exception $e) {
+                    throw new Exception("Currently Email Service is stopped Please try another way");
+                }
             }
             $responseSms = "";
-            foreach($sendsOn as $val)
-            {
-                $responseSms .= ($val." & ");
+            foreach ($sendsOn as $val) {
+                $responseSms .= ($val . " & ");
             }
-            $responseSms = trim($responseSms,"& ");
-            $responseSms = "OTP send to your ".$responseSms;
-            $mOtpRequest->saveOtp($request, $generateOtp);            
-            
+            $responseSms = trim($responseSms, "& ");
+            $responseSms = "OTP send to your " . $responseSms;
+            $mOtpRequest->saveOtp($request, $generateOtp);
+
             return responseMsgs(true, $responseSms, "", "", "01", ".ms", "POST", "");
-            
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
         }
@@ -252,15 +259,15 @@ class ThirdPartyController extends Controller
 
     public function verifyOtpV2(RequestOtpVerify $request)
     {
-        try {            
+        try {
             # model
             $mOtpMaster     = new OtpRequest();
             $mActiveCitizen = new ActiveCitizen();
             $mUsers         = new AuthUser();
             $mPasswordResetOtpToken         = new PasswordResetOtpToken();
             # logi 
-            
-            $checkOtp = $mOtpMaster::orderBy("id","DESC");
+
+            $checkOtp = $mOtpMaster::orderBy("id", "DESC");
             $checkOtp = app(Pipeline::class)
                 ->send(
                     $checkOtp
@@ -274,7 +281,7 @@ class ThirdPartyController extends Controller
                 ])
                 ->thenReturn()
                 ->first();
-            
+
             if (!$checkOtp) {
                 throw new Exception("OTP not match!");
             }
@@ -289,20 +296,19 @@ class ThirdPartyController extends Controller
                 "userType"     => $checkOtp->user_type,
                 "userId"     => $checkOtp->user_id,
             ]);
-            
+
             DB::beginTransaction();
             $checkOtp->update();
             $this->transerLog($checkOtp);
-            
+
             $sms = "OTP Validated!";
-            $response=[];
-            if($checkOtp->otp_type =="Forgot Password")
-            {
+            $response = [];
+            if ($checkOtp->otp_type == "Forgot Password") {
                 $sms = "OTP Varify Proccied For Password Update. Token Is Valide Only 10 minutes";
                 $response["token"] = $mPasswordResetOtpToken->store($request);
             }
-            DB::commit();            
-            
+            DB::commit();
+
             return responseMsgs(true, $sms, $response, "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             DB::rollBack();
@@ -312,67 +318,63 @@ class ThirdPartyController extends Controller
 
     private function transerLog(OtpRequest $checkOtp)
     {
-        $OldOtps =  OtpRequest::where("expires_at",Carbon::now())
-                                ->whereNotNull("expires_at")
-                                ->where(DB::raw("CAST(created_at AS Date)"),Carbon::now()->format("Y-m-d"))
-                                ->get();
-        foreach($OldOtps as $val)
-        {
+        $OldOtps =  OtpRequest::where("expires_at", Carbon::now())
+            ->whereNotNull("expires_at")
+            ->where(DB::raw("CAST(created_at AS Date)"), Carbon::now()->format("Y-m-d"))
+            ->get();
+        foreach ($OldOtps as $val) {
             $otpLog = $val->replicate();
             $otpLog->setTable('log_otp_requests');
             $otpLog->id = $val->id;
             $otpLog->save();
             $checkOtp->delete();
         }
-        if($checkOtp)
-        {
+        if ($checkOtp) {
             $otpLog = $checkOtp->replicate();
             $otpLog->setTable('log_otp_requests');
             $otpLog->id = $checkOtp->id;
             $otpLog->save();
             $checkOtp->delete();
         }
-        
     }
 
     public function changePasswordV2(RequestChangePssByToken $request)
     {
-        try {            
+        try {
             # model
             $mActiveCitizen = new ActiveCitizen();
             $mUsers         = new AuthUser();
             $mPasswordResetOtpToken         = new PasswordResetOtpToken();
             # logi 
             $requestToken = $mPasswordResetOtpToken
-                            ->where("token",$request->token)
-                            ->where("status",0)
-                            ->whereNotNull("user_type")
-                            ->whereNotNull("user_id")
-                            ->first();
+                ->where("token", $request->token)
+                ->where("status", 0)
+                ->whereNotNull("user_type")
+                ->whereNotNull("user_id")
+                ->first();
             if (!$requestToken) {
                 throw new Exception("Invalid Token");
-            }    
-            if ($requestToken->expires_at < Carbon::now() ) {
+            }
+            if ($requestToken->expires_at < Carbon::now()) {
                 throw new Exception("Token Is Expired");
-            }        
+            }
             $users = $requestToken->user_type == $mActiveCitizen->gettable() ? $mActiveCitizen->find($requestToken->user_id) : $mUsers->find($requestToken->user_id);
-            if(!$users || (!in_array($requestToken->user_type,[$mActiveCitizen->gettable(),$mUsers->gettable()])))
-            {
+            if (!$users || (!in_array($requestToken->user_type, [$mActiveCitizen->gettable(), $mUsers->gettable()]))) {
                 throw new Exception("Invalid Password Update Request Apply");
             }
             $requestToken->status = 1;
             $users->password = Hash::make($request->password);
 
             DB::beginTransaction();
-            $users->tokens->each(function ($token, $key){
+            $users->tokens->each(function ($token, $key) {
                 $token->expires_at = Carbon::now();
                 $token->update();
                 $token->delete();
             });
-            $requestToken->update();            
+            $requestToken->update();
             $users->update();
-            DB::commit();            
-            
+            DB::commit();
+
             return responseMsgs(true, "Password Updated Successfully", "", "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             DB::rollBack();

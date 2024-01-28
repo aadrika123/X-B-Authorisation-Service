@@ -11,6 +11,9 @@ class SearchByMobile
         if (!request()->has('mobile')) {
             return $next($request);
         }
+        if (request()->has("strict") == true) {
+            return $next($request)->where("mobile", request()->input('mobile'));
+        }
         return $next($request)
             ->where('mobile', 'ilike', '%' . request()->input('mobile') . '%');
     }
