@@ -207,8 +207,16 @@ class ThirdPartyController extends Controller
                     ->thenReturn()
                     ->first();
             }
-            if (!$userData) {
-                throw new Exception("Data Not Find");
+            if (!$userData && $email) {
+                throw new Exception("Email doesn't exist");
+            }
+            elseif(!$userData && $mobileNo)
+            {
+                throw new Exception("Mobile doesn't exist");
+            }
+            elseif(!$userData)
+            {
+                throw new Exception("Data Not Found");
             }
             $generateOtp = $this->generateOtp();
             $request->merge([
