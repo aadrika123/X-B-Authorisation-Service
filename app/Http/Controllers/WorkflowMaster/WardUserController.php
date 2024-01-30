@@ -196,6 +196,7 @@ class WardUserController extends Controller
                             ward.ward_name,
                             ward.old_ward_name,
                             wu.user_id,
+                            zone,
                             case 
                                 when wu.user_id is null then false
                                 else
@@ -203,12 +204,13 @@ class WardUserController extends Controller
                             end as permission_status
                     
                         from ulb_ward_masters as ward
-                        left join (select * from wf_ward_users where user_id=$req->userId) as wu on wu.ward_id=ward.id
+                        left join (select * from wf_ward_users where user_id=$req->userId and is_suspended = false) as wu on wu.ward_id=ward.id
                         where ward.ulb_id = $user->ulb_id
                         and status=1
-                        order by ward.id";
+                        order by ward.ward_name";
 
             $data = DB::select($query);
+            $data = collect($data)->groupBy('zone')->sortBy('ward_name');
 
             // $WardUsers = $mWfWardUser->listWardUser()
             //     ->where('users.id', $req->userId)
