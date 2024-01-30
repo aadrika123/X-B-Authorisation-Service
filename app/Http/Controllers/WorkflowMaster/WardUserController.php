@@ -210,7 +210,7 @@ class WardUserController extends Controller
                         order by ward.ward_name";
 
             $data = DB::select($query);
-            $data = collect($data)->groupBy('zone')->sortBy('ward_name');
+            // $data = collect($data)->groupBy('zone')->sortBy('ward_name');
 
             // $WardUsers = $mWfWardUser->listWardUser()
             //     ->where('users.id', $req->userId)
