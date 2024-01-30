@@ -203,13 +203,14 @@ class UserController extends Controller
     public function listUser(Request $req)
     {
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $perPage = $req->perPage ?? 10;
             $ulbId = authUser()->ulb_id;
             $data = User::select(
                 '*',
                 'users.id as id',
-                DB::raw("CONCAT(photo_relative_path, '/', photo) AS photo"),
-                DB::raw("CONCAT(sign_relative_path, '/', signature) AS signature")
+                DB::raw("CONCAT('$docUrl','/',photo_relative_path, '/', photo) AS photo"),
+                DB::raw("CONCAT('$docUrl','/',sign_relative_path, '/', signature) AS signature")
             )
                 ->where('users.ulb_id', $ulbId)
                 ->orderBy('users.id');
