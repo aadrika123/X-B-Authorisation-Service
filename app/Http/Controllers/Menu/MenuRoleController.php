@@ -148,6 +148,7 @@ class MenuRoleController extends Controller
                         from menu_masters as m
                         left join (select * from menu_rolemaps where menu_role_id=$req->menuRoleId and is_suspended = false) as mr on mr.menu_id=m.id
                         join module_masters on module_masters.id = m.module_id
+                        WHERE m.is_deleted = false
                         order by m.id";
 
             $data = DB::select($query);
