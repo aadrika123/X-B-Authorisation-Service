@@ -71,6 +71,12 @@ class UserController extends Controller
                 if ($req->email <> 'stateadmin@gmail.com')
                     throw new Exception("You are not Authorised");
             }
+
+            if ($req->module == 'userControl') {
+                if ($req->email <> 'praveenkumar@gmail.com')
+                    throw new Exception("You are not Authorised");
+            }
+
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
                 throw new Exception("Oops! Given email does not exist");
