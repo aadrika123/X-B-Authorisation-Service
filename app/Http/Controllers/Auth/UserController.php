@@ -304,12 +304,14 @@ class UserController extends Controller
             $data->suspended = $request->isSuspended;
             $data->save();
 
-            // if($data->suspended = true)
-            // {
+            if ($data->isSuspended = true)
+                $msg = "You have Deactivated the User";
 
-            // }
+            if ($data->isSuspended = false)
+                $msg = "You have Activated the User";
 
-            return responseMsgs(true, "Data Deleted", '', "", "01", ".ms", "POST", "");
+
+            return responseMsgs(true, $msg, '', "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
         }
