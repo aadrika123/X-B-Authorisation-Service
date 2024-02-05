@@ -219,7 +219,7 @@ class UserController extends Controller
                 DB::raw("CONCAT('$docUrl','/',sign_relative_path, '/', signature) AS signature")
             )
                 ->where('users.ulb_id', $ulbId)
-                ->orderBy('users.id');
+                ->orderBy('users.name');
 
             $userList = app(Pipeline::class)
                 ->send(
