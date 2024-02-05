@@ -304,10 +304,10 @@ class UserController extends Controller
             $data->suspended = $request->isSuspended;
             $data->save();
 
-            if ($data->isSuspended = true)
+            if ($request->isSuspended == true)
                 $msg = "You have Deactivated the User";
 
-            if ($data->isSuspended = false)
+            if ($request->isSuspended == false)
                 $msg = "You have Activated the User";
 
 
