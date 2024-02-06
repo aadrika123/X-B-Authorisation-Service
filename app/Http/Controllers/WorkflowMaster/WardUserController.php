@@ -153,6 +153,7 @@ class WardUserController extends Controller
                 ->where('ulb_id', $ulbId)
                 ->where('users.suspended', false)
                 ->whereIN('user_type', $TC)
+                ->orderBy('name')
                 ->get();
 
             if ($req->wardId) {
@@ -166,6 +167,7 @@ class WardUserController extends Controller
                     ->where('ulb_id', $ulbId)
                     ->where('ward_id', $req->wardId)
                     ->whereIN('user_type', $TC)
+                    ->orderBy('name')
                     ->get();
             }
 
