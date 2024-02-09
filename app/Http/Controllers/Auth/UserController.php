@@ -71,6 +71,12 @@ class UserController extends Controller
                 if ($req->email <> 'stateadmin@gmail.com')
                     throw new Exception("You are not Authorised");
             }
+
+            if ($req->module == 'userControl') {
+                if ($req->email <> 'praveenkumar@gmail.com')
+                    throw new Exception("You are not Authorised");
+            }
+
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
                 throw new Exception("Oops! Given email does not exist");
@@ -203,16 +209,17 @@ class UserController extends Controller
     public function listUser(Request $req)
     {
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $perPage = $req->perPage ?? 10;
             $ulbId = authUser()->ulb_id;
             $data = User::select(
                 '*',
                 'users.id as id',
-                DB::raw("CONCAT(photo_relative_path, '/', photo) AS photo"),
-                DB::raw("CONCAT(sign_relative_path, '/', signature) AS signature")
+                DB::raw("CONCAT('$docUrl','/',photo_relative_path, '/', photo) AS photo"),
+                DB::raw("CONCAT('$docUrl','/',sign_relative_path, '/', signature) AS signature")
             )
                 ->where('users.ulb_id', $ulbId)
-                ->orderBy('users.id');
+                ->orderBy('users.name');
 
             $userList = app(Pipeline::class)
                 ->send(
@@ -303,12 +310,14 @@ class UserController extends Controller
             $data->suspended = $request->isSuspended;
             $data->save();
 
-            // if($data->suspended = true)
-            // {
+            if ($request->isSuspended == true)
+                $msg = "You have Deactivated the User";
 
-            // }
+            if ($request->isSuspended == false)
+                $msg = "You have Activated the User";
 
-            return responseMsgs(true, "Data Deleted", '', "", "01", ".ms", "POST", "");
+
+            return responseMsgs(true, $msg, '', "", "01", ".ms", "POST", "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
         }

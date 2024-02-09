@@ -106,7 +106,7 @@ class MenuController extends Controller
             $mMenuMaster = new MenuMaster();
             $refmenues = $mMenuMaster->fetchAllMenues()
                 ->get();
-            $menues = $refmenues->sortByDesc("id");
+            $menues = $refmenues->sortBy("menu_string");
             $listedMenues = collect($menues)->map(function ($value) use ($mMenuMaster) {
                 if ($value['parent_id'] != 0) {
                     $parent = $mMenuMaster->getMenuById($value['parent_id']);

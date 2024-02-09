@@ -139,6 +139,7 @@ class MenuRoleController extends Controller
                             m.menu_string,
                             mr.menu_role_id,
                             module_masters.module_name,
+                            module_masters.id as module_id,
                             case 
                                 when mr.menu_role_id is null then true
                                 else
@@ -148,9 +149,12 @@ class MenuRoleController extends Controller
                         from menu_masters as m
                         left join (select * from menu_rolemaps where menu_role_id=$req->menuRoleId and is_suspended = false) as mr on mr.menu_id=m.id
                         join module_masters on module_masters.id = m.module_id
-                        order by m.id";
+                        WHERE m.is_deleted = false
+                        order by module_id,m.menu_string
+                        ";
 
             $data = DB::select($query);
+            $data = collect($data)->groupBy('module_name');
 
             return responseMsg(true, "Menu Role Map List", $data);
         } catch (Exception $e) {

@@ -150,9 +150,11 @@ class WardUserController extends Controller
                 'name as user_name',
                 'user_type',
             )
+                ->where('id', '<>', 76)
                 ->where('ulb_id', $ulbId)
                 ->where('users.suspended', false)
                 ->whereIN('user_type', $TC)
+                ->orderBy('name')
                 ->get();
 
             if ($req->wardId) {
@@ -162,10 +164,12 @@ class WardUserController extends Controller
                     'user_type',
                 )
                     ->join('wf_ward_users', 'wf_ward_users.user_id', 'users.id')
+                    ->where('id', '<>', 76)
                     ->where('users.suspended', false)
                     ->where('ulb_id', $ulbId)
                     ->where('ward_id', $req->wardId)
                     ->whereIN('user_type', $TC)
+                    ->orderBy('name')
                     ->get();
             }
 
@@ -196,6 +200,7 @@ class WardUserController extends Controller
                             ward.ward_name,
                             ward.old_ward_name,
                             wu.user_id,
+                            zone_name,
                             case 
                                 when wu.user_id is null then false
                                 else
@@ -203,12 +208,14 @@ class WardUserController extends Controller
                             end as permission_status
                     
                         from ulb_ward_masters as ward
-                        left join (select * from wf_ward_users where user_id=$req->userId) as wu on wu.ward_id=ward.id
+                        left join (select * from wf_ward_users where user_id=$req->userId and is_suspended = false) as wu on wu.ward_id=ward.id
+                        join zone_masters on zone_masters.id = ward.zone
                         where ward.ulb_id = $user->ulb_id
-                        and status=1
-                        order by ward.id";
+                        and ward.status=1
+                        order by ward.ward_name";
 
             $data = DB::select($query);
+            $data = collect($data)->groupBy('zone_name');
 
             // $WardUsers = $mWfWardUser->listWardUser()
             //     ->where('users.id', $req->userId)
