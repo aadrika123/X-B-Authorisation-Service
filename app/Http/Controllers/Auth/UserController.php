@@ -635,8 +635,9 @@ class UserController extends Controller
     public function userDtls(Request $req)
     {
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $mWfRoleusermap = new WfRoleusermap();
-            $user = Auth()->user();
+            $user = Auth()->user();dd($user,User::find($user->id));
             $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
             // if (empty(collect($menuRoleDetails)->first())) {
             //     throw new Exception('User has No Roles!');
@@ -724,7 +725,7 @@ class UserController extends Controller
             }
 
             $data['userDetails'] = $user;
-            $data['userDetails']["imgFullPath"] = trim($user->photo_relative_path . "/" . $user->photo, "/");
+            $data['userDetails']["imgFullPath"] = trim($docUrl."/".$user->photo_relative_path . "/" . $user->photo, "/");
             $data['userDetails']['role'] = $role;
             $data["routes"] = $routList;
             $data["permittedWard"] = $permittedWards;
