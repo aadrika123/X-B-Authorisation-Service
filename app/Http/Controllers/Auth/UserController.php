@@ -637,7 +637,7 @@ class UserController extends Controller
         try {
             $docUrl = Config::get('constants.DOC_URL');
             $mWfRoleusermap = new WfRoleusermap();
-            $user = Auth()->user();dd($user,User::find($user->id));
+            $user = Auth()->user();
             $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
             // if (empty(collect($menuRoleDetails)->first())) {
             //     throw new Exception('User has No Roles!');
