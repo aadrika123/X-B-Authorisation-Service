@@ -309,6 +309,22 @@ class UserController extends Controller
             $data = User::find($request->id);
             $data->suspended = $request->isSuspended;
             $data->save();
+            #expire all token            
+            $count = (collect($data->tokens)->count("id"));
+            if($data->suspended && $data && $count<0){  
+                $data->tokens->each(function ($token, $key){
+                    $token->expires_at = Carbon::now();
+                    $token->update();
+                    $token->delete();                    
+                });
+            }
+            if($data->suspended && $data && $count>=0){  
+                $nameSpace = (((new \ReflectionClass(new User())))->getNamespaceName()."\User");
+                $sql = "delete from personal_access_tokens
+                        where tokenable_id = ".$data->id." AND tokenable_type = '$nameSpace'
+                ";
+                DB::select($sql);
+            }
 
             if ($request->isSuspended == true)
                 $msg = "You have Deactivated the User";
