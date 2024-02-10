@@ -646,6 +646,9 @@ class UserController extends Controller
                 $values = $value['roles'];
                 return $values;
             });
+            $roleWithId = collect($menuRoleDetails)->map(function ($value, $key) {                              
+                return ["role_name"=>$value['roles'],"role_id"=>$value["roleId"]];
+            });
             $permittedWards = UlbWardMaster::select("ulb_ward_masters.id", "ulb_ward_masters.ward_name")
                 ->join("wf_ward_users", "wf_ward_users.ward_id", "ulb_ward_masters.id")
                 ->where("wf_ward_users.is_suspended", false)
@@ -727,6 +730,7 @@ class UserController extends Controller
             $data['userDetails'] = $user;
             $data['userDetails']["imgFullPath"] = trim($docUrl."/".$user->photo_relative_path . "/" . $user->photo, "/");
             $data['userDetails']['role'] = $role;
+            $data['userDetails']['roleWithId']=$roleWithId ;
             $data["routes"] = $routList;
             $data["permittedWard"] = $permittedWards;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
