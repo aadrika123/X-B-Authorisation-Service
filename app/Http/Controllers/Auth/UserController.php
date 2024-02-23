@@ -309,6 +309,22 @@ class UserController extends Controller
             $data = User::find($request->id);
             $data->suspended = $request->isSuspended;
             $data->save();
+            #expire all token            
+            $count = (collect($data->tokens)->count("id"));
+            if($data->suspended && $data && $count<0){  
+                $data->tokens->each(function ($token, $key){
+                    $token->expires_at = Carbon::now();
+                    $token->update();
+                    $token->delete();                    
+                });
+            }
+            if($data->suspended && $data && $count>=0){  
+                $nameSpace = (((new \ReflectionClass(new User())))->getNamespaceName()."\User");
+                $sql = "delete from personal_access_tokens
+                        where tokenable_id = ".$data->id." AND tokenable_type = '$nameSpace'
+                ";
+                DB::select($sql);
+            }
 
             if ($request->isSuspended == true)
                 $msg = "You have Deactivated the User";
@@ -619,6 +635,7 @@ class UserController extends Controller
     public function userDtls(Request $req)
     {
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $mWfRoleusermap = new WfRoleusermap();
             $user = Auth()->user();
             $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
@@ -628,6 +645,9 @@ class UserController extends Controller
             $role = collect($menuRoleDetails)->map(function ($value, $key) {
                 $values = $value['roles'];
                 return $values;
+            });
+            $roleWithId = collect($menuRoleDetails)->map(function ($value, $key) {                              
+                return ["role_name"=>$value['roles'],"role_id"=>$value["roleId"]];
             });
             $permittedWards = UlbWardMaster::select("ulb_ward_masters.id", "ulb_ward_masters.ward_name")
                 ->join("wf_ward_users", "wf_ward_users.ward_id", "ulb_ward_masters.id")
@@ -708,8 +728,9 @@ class UserController extends Controller
             }
 
             $data['userDetails'] = $user;
-            $data['userDetails']["imgFullPath"] = trim($user->photo_relative_path . "/" . $user->photo, "/");
+            $data['userDetails']["imgFullPath"] = trim($docUrl."/".$user->photo_relative_path . "/" . $user->photo, "/");
             $data['userDetails']['role'] = $role;
+            $data['userDetails']['roleWithId']=$roleWithId ;
             $data["routes"] = $routList;
             $data["permittedWard"] = $permittedWards;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
