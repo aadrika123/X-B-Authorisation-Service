@@ -21,6 +21,7 @@ return [
 
     "USER_TYPE" => [
         "Admin",
+        "Agency",
         "Employee",
         "JSK",
         "TC",
