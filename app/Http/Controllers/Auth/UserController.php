@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\AuthUserRequest;
 use App\Http\Requests\Auth\ChangePassRequest;
 use App\Http\Requests\Auth\OtpChangePass;
 use App\Models\Auth\User;
+use App\Models\Constant;
 use App\Models\Notification\MirrorUserNotification;
 use App\Models\Notification\UserNotification;
 use App\Models\Workflows\WfRoleusermap;
@@ -41,6 +42,7 @@ class UserController extends Controller
     private $_UserMenuMobileExclude;
     private $_UserMenuMobileInclude;
     private $_ModuleMaster;
+    private $_FrontConstains;
     public function __construct()
     {
         $this->_mUser = new User();
@@ -48,6 +50,7 @@ class UserController extends Controller
         $this->_UserMenuMobileExclude   = new UserMenuMobileExclude();
         $this->_UserMenuMobileInclude   = new UserMenuMobileInclude();
         $this->_ModuleMaster = new ModuleMaster();
+        $this->_FrontConstains = new Constant();
     }
 
     /**
@@ -106,6 +109,10 @@ class UserController extends Controller
                     $values = $value['roles'];
                     return $values;
                 });
+                $GEO_MAX_AGE = (object)collect($this->_FrontConstains->getConnectionByName("GEO_MAX_AGE")->values())->first();
+                $IS_GEO_ENABLE = (object)collect($this->_FrontConstains->getConnectionByName("IS_GEO_ENABLE")->values())->first();
+                $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values:false;
+                $data['geoMaxAge'] = $GEO_MAX_AGE ? $GEO_MAX_AGE->convert_values : false;
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 $data['userDetails']['role'] = $role;
