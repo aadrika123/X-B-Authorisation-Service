@@ -513,6 +513,9 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::post('water/consumer/details', 'unAuthApis');
         Route::post('water/consumer/get-consumer-bill', 'unAuthApis');
         Route::post('water/citizen/consumer-search', 'unAuthApis');
+        
+        #advertisement
+        Route::post('advertisement/approve-applications', 'unAuthApis');
     });
 });
 
