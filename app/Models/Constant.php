@@ -38,7 +38,7 @@ class Constant extends Model
     }
     public function getRedisData()
     {
-        $this->_ALL_CONSTANT = json_decode(Redis::get($this->_REDIS_KEY), true) ?? null; 
+        // $this->_ALL_CONSTANT = json_decode(Redis::get($this->_REDIS_KEY), true) ?? null; 
         if(!$this->_ALL_CONSTANT)
         {
            $this->redisData();
