@@ -740,6 +740,10 @@ class UserController extends Controller
             $data['userDetails']['roleWithId']=$roleWithId ;
             $data["routes"] = $routList;
             $data["permittedWard"] = $permittedWards;
+            $GEO_MAX_AGE = (object)collect($this->_FrontConstains->getConnectionByName("GEO_MAX_AGE")->values())->first();
+            $IS_GEO_ENABLE = (object)collect($this->_FrontConstains->getConnectionByName("IS_GEO_ENABLE")->values())->first();
+            $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values:false;
+            $data['geoMaxAge'] = $GEO_MAX_AGE ? $GEO_MAX_AGE->convert_values : false;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", 010101, "1.0", responseTime(), "POST", $req->deviceId);
