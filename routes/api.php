@@ -94,7 +94,7 @@ Route::controller(ThirdPartyController::class)->group(function () {
  * | Module Id = 12 
  * | Module Name = User Management
  */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
 
     /**
      * | Api to Check if the User is authenticated or not
@@ -513,6 +513,9 @@ Route::middleware(['apiPermission'])->group(function () {
         Route::post('water/consumer/details', 'unAuthApis');
         Route::post('water/consumer/get-consumer-bill', 'unAuthApis');
         Route::post('water/citizen/consumer-search', 'unAuthApis');
+        
+        #advertisement
+        Route::post('advertisement/approve-applications', 'unAuthApis');
     });
 });
 

@@ -195,6 +195,8 @@ class WorkflowRoleMapController extends Controller
             'can_view_technical_comparison' => $permission->can_view_technical_comparison,
             'can_bt_da' => $permission->can_bt_da,
             'can_assing_propety_no' => $permission->can_assing_propety_no??false,
+            'can_genrate_jahirnama' => $permission->can_genrate_jahirnama??false,
+            'can_update_jahirnama_obj' => $permission->can_update_jahirnama_obj??false,
         ];
 
         return $data;
