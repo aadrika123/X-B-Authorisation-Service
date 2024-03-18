@@ -86,12 +86,12 @@ class UserController extends Controller
             if ($user->suspended == true)
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
-                $users = $this->_mUser->find($user->id);
-                $users->tokens->each(function ($token, $key) {
-                    $token->expires_at = Carbon::now();
-                    $token->update();
-                    $token->delete();
-                });
+                // $users = $this->_mUser->find($user->id);
+                // $users->tokens->each(function ($token, $key) {
+                //     $token->expires_at = Carbon::now();
+                //     $token->update();
+                //     $token->delete();
+                // });
 
                 $tockenDtl = $user->createToken('my-app-token');
                 $ipAddress = getClientIpAddress(); #$req->userAgent()
