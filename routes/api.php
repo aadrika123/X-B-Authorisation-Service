@@ -473,7 +473,7 @@ Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
     });
 });
 // Api Gateway Routes for Unauth middleware required= 'apiPermission',
-Route::middleware(['apiPermission'])->group(function () {
+Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
     Route::controller(ApiUnauthController::class)->group(function () {
         Route::get('trade/payment-receipt/{id}/{transectionId}', 'unAuthApis');
         Route::get('trade/provisional-certificate/{id}', 'unAuthApis');
@@ -520,7 +520,7 @@ Route::middleware(['apiPermission'])->group(function () {
 });
 
 # Autherisation middleware required= 'apiPermission',
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
     Route::controller(ApiGatewayController::class)->group(function () {
         Route::any('{any}', 'apiGatewayService')->where('any', '.*');
     });
