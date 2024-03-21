@@ -31,6 +31,7 @@ use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\ModuleMaster;
 use App\Models\UlbWardMaster;
 use App\Models\Workflows\WfWardUser;
+use PDOException;
 
 use function PHPUnit\Framework\throwException;
 
@@ -117,7 +118,7 @@ class UserController extends Controller
                 });
                 $GEO_MAX_AGE = (object)collect($this->_FrontConstains->getConnectionByName("GEO_MAX_AGE")->values())->first();
                 $IS_GEO_ENABLE = (object)collect($this->_FrontConstains->getConnectionByName("IS_GEO_ENABLE")->values())->first();
-                $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values:false;
+                $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values : false;
                 $data['geoMaxAge'] = $GEO_MAX_AGE ? $GEO_MAX_AGE->convert_values : false;
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
@@ -126,7 +127,9 @@ class UserController extends Controller
             }
 
             throw new Exception("Password Not Matched");
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
+            return responseMsg(false, "Connection Refused", "");
+        } catch (Exception  $e) {
             return responseMsg(false, $e->getMessage(), "");
         }
     }
@@ -324,17 +327,17 @@ class UserController extends Controller
             $data->save();
             #expire all token            
             $count = (collect($data->tokens)->count("id"));
-            if($data->suspended && $data && $count<0){  
-                $data->tokens->each(function ($token, $key){
+            if ($data->suspended && $data && $count < 0) {
+                $data->tokens->each(function ($token, $key) {
                     $token->expires_at = Carbon::now();
                     $token->update();
-                    $token->delete();                    
+                    $token->delete();
                 });
             }
-            if($data->suspended && $data && $count>=0){  
-                $nameSpace = (((new \ReflectionClass(new User())))->getNamespaceName()."\User");
+            if ($data->suspended && $data && $count >= 0) {
+                $nameSpace = (((new \ReflectionClass(new User())))->getNamespaceName() . "\User");
                 $sql = "delete from personal_access_tokens
-                        where tokenable_id = ".$data->id." AND tokenable_type = '$nameSpace'
+                        where tokenable_id = " . $data->id . " AND tokenable_type = '$nameSpace'
                 ";
                 DB::select($sql);
             }
@@ -659,8 +662,8 @@ class UserController extends Controller
                 $values = $value['roles'];
                 return $values;
             });
-            $roleWithId = collect($menuRoleDetails)->map(function ($value, $key) {                              
-                return ["role_name"=>$value['roles'],"role_id"=>$value["roleId"]];
+            $roleWithId = collect($menuRoleDetails)->map(function ($value, $key) {
+                return ["role_name" => $value['roles'], "role_id" => $value["roleId"]];
             });
             $permittedWards = UlbWardMaster::select("ulb_ward_masters.id", "ulb_ward_masters.ward_name")
                 ->join("wf_ward_users", "wf_ward_users.ward_id", "ulb_ward_masters.id")
@@ -741,14 +744,14 @@ class UserController extends Controller
             }
 
             $data['userDetails'] = $user;
-            $data['userDetails']["imgFullPath"] = trim($docUrl."/".$user->photo_relative_path . "/" . $user->photo, "/");
+            $data['userDetails']["imgFullPath"] = trim($docUrl . "/" . $user->photo_relative_path . "/" . $user->photo, "/");
             $data['userDetails']['role'] = $role;
-            $data['userDetails']['roleWithId']=$roleWithId ;
+            $data['userDetails']['roleWithId'] = $roleWithId;
             $data["routes"] = $routList;
             $data["permittedWard"] = $permittedWards;
             $GEO_MAX_AGE = (object)collect($this->_FrontConstains->getConnectionByName("GEO_MAX_AGE")->values())->first();
             $IS_GEO_ENABLE = (object)collect($this->_FrontConstains->getConnectionByName("IS_GEO_ENABLE")->values())->first();
-            $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values:false;
+            $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values : false;
             $data['geoMaxAge'] = $GEO_MAX_AGE ? $GEO_MAX_AGE->convert_values : false;
             return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
