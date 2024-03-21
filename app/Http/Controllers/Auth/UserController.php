@@ -88,11 +88,19 @@ class UserController extends Controller
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
                 $users = $this->_mUser->find($user->id);
-                $users->tokens->each(function ($token, $key) {
+                $maAllow = $users->max_login_allow ;
+                $remain = ($users->tokens->count("id")) - $maAllow;
+                $c= 0;
+                foreach($users->tokens->sortBy("id") as  $key =>$token){                    
+                    if($remain<$key)
+                    {
+                        break;
+                    }
+                    $c+=1;
                     $token->expires_at = Carbon::now();
                     $token->update();
                     $token->delete();
-                });
+                }
 
                 $tockenDtl = $user->createToken('my-app-token');
                 $ipAddress = getClientIpAddress(); #$req->userAgent()
