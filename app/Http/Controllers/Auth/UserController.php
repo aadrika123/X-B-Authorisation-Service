@@ -136,7 +136,7 @@ class UserController extends Controller
 
             throw new Exception("Password Not Matched");
         } catch (PDOException $e) {
-            return responseMsg(false, "Connection Refused", "");
+            return responseMsg(false, "Oops! It's rush hour and traffic is piling up on this page. Please try again in a short while.", "");
         } catch (Exception  $e) {
             return responseMsg(false, $e->getMessage(), "");
         }
