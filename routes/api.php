@@ -506,6 +506,7 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
         Route::post("property/citizen/icic-init-payment", "unAuthApis");
         Route::post('property/search-holding-direct', 'unAuthApis');
         Route::post('property/prop-payment-history-direct', 'unAuthApis');
+        Route::post('property/saf/get-prop-byholding', 'unAuthApis');
         Route::post('property/user-property-details', 'unAuthApis');                 //PRIITY
 
         # Water
