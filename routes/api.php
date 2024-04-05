@@ -501,8 +501,9 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
         Route::match(["get", 'post'], "market/rental/get-search-shop-by-mobile-no-name-shop", "unAuthApis");
         Route::post("property/v1/get_ward_name_by_zone", "unAuthApis");
         Route::post("property/citizen/get-holding-dues", "unAuthApis");
-        Route::post("property/citizen/icic-init-payment", "unAuthApis");
         Route::post("property/get-holding-dues-of-property", "unAuthApis");
+        Route::post('property/independent/get-holding-dues', 'unAuthApis');
+        Route::post("property/citizen/icic-init-payment", "unAuthApis");
         Route::post('property/search-holding-direct', 'unAuthApis');
         Route::post('property/prop-payment-history-direct', 'unAuthApis');
         Route::post('property/user-property-details', 'unAuthApis');                 //PRIITY
