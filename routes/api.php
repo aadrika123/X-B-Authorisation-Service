@@ -505,7 +505,6 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
         Route::post("property/get-holding-dues-of-property", "unAuthApis");
         Route::post('property/search-holding-direct', 'unAuthApis');
         Route::post('property/prop-payment-history-direct', 'unAuthApis');
-        Route::post("property/prop-payment-receipt",'unAuthApis');
 
         # Water
         Route::post('water/citizen/icici-payment', 'unAuthApis');
