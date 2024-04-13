@@ -91,16 +91,16 @@ class UserController extends Controller
                 $maAllow = $users->max_login_allow ;
                 $remain = ($users->tokens->count("id")) - $maAllow;
                 $c= 0;
-                foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
-                    if($remain<$key)
-                    {
-                        break;
-                    }
-                    $c+=1;
-                    $token->expires_at = Carbon::now();
-                    $token->update();
-                    $token->delete();
-                }
+                // foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
+                //     if($remain<$key)
+                //     {
+                //         break;
+                //     }
+                //     $c+=1;
+                //     $token->expires_at = Carbon::now();
+                //     $token->update();
+                //     $token->delete();
+                // }
 
                 $tockenDtl = $user->createToken('my-app-token');
                 $ipAddress = getClientIpAddress(); #$req->userAgent()
