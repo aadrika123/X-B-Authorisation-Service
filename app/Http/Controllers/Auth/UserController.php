@@ -91,7 +91,7 @@ class UserController extends Controller
                 $maAllow = $users->max_login_allow ;
                 $remain = ($users->tokens->count("id")) - $maAllow;
                 $c= 0;
-                foreach($users->tokens->sortBy("id") as  $key =>$token){                    
+                foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
                     if($remain<$key)
                     {
                         break;
