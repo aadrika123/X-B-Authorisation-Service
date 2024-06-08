@@ -31,6 +31,7 @@ use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\ModuleMaster;
 use App\Models\UlbWardMaster;
 use App\Models\Workflows\WfWardUser;
+use Illuminate\Support\Facades\Redis;
 use PDOException;
 
 use function PHPUnit\Framework\throwException;
@@ -70,6 +71,7 @@ class UserController extends Controller
         if ($validated->fails())
             return validationError($validated);
         try {
+            $currentTime = Carbon::now();
             $mWfRoleusermap = new WfRoleusermap();
             if ($req->module == 'dashboard') {
                 if ($req->email <> 'stateadmin@gmail.com')
@@ -88,9 +90,9 @@ class UserController extends Controller
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
                 $users = $this->_mUser->find($user->id);
-                $maAllow = $users->max_login_allow ;
+                $maAllow = $users->max_login_allow;
                 $remain = ($users->tokens->count("id")) - $maAllow;
-                $c= 0;
+                $c = 0;
                 // foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
                 //     if($remain<$key)
                 //     {
@@ -131,6 +133,10 @@ class UserController extends Controller
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 $data['userDetails']['role'] = $role;
+
+                $key = 'last_activity_' . $user->id;
+                Redis::set($key, $currentTime);            // Caching
+
                 return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
             }
 

@@ -30,7 +30,7 @@ class ExpireBearerToken
      */
     public function handle(Request $request, Closure $next)
     {
-        $citizenUserType = Config::get('workflow-constants.USER_TYPES.1');
+        $citizenUserType = "Citizen";
         $this->_user = auth()->user();
         $this->_token = $request->bearerToken();
         $this->_currentTime = Carbon::now();
