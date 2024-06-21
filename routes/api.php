@@ -519,6 +519,9 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
         #advertisement
         Route::post('advertisement/approve-applications', 'unAuthApis');
         Route::post('advertisement/payment-receipt', 'unAuthApis');
+
+        # IGR
+        Route::post('property/user-property-details', 'unAuthApis');
     });
 });
 
