@@ -54,6 +54,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
  */
 Route::controller(UserController::class)->group(function () {
     Route::post('login', 'loginAuth');
+    Route::post('user-login-sendotp', 'userloginSendOtp');
+    Route::post('user-login-verifyotp', 'userloginVerifyOtp');
     Route::post('register', 'store');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
     Route::post('get-user-dtl', 'userDtls')->middleware('auth:sanctum');

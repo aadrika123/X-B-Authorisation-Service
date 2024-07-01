@@ -49,4 +49,12 @@ class OtpRequest extends Model
             ->orderByDesc('id')
             ->first();
     }
+
+    public function checkOtpViaEmail($request)
+    {
+        return OtpRequest::where('otp', $request->otp)
+            ->where('email', $request->email)
+            ->orderByDesc('id')
+            ->first();
+    }
 }
