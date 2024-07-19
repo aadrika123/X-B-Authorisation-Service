@@ -96,7 +96,7 @@ Route::controller(ThirdPartyController::class)->group(function () {
  * | Module Id = 12 
  * | Module Name = User Management
  */
-Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
+Route::middleware(['auth:sanctum', "expireBearerToken"])->group(function () {
 
     /**
      * | Api to Check if the User is authenticated or not
@@ -454,12 +454,12 @@ Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
         Route::post('workflow/getWardByUlb', 'getWardByUlb');
     });
 
-    Route::controller(MobiMenuController::class)->group(function(){
+    Route::controller(MobiMenuController::class)->group(function () {
         Route::post('mobi/add-menu', 'addMenu');
         Route::post('mobi/edit-menu', 'editMenu');
         Route::post('mobi/list-menu', 'getMenuList');
         Route::post('mobi/dtl-menu', 'menuDtl');
-        Route::post("mobi/get-parent-menu","getParentMenuList");
+        Route::post("mobi/get-parent-menu", "getParentMenuList");
 
         Route::post('mobi/add-user-menu-exclude', 'addUserExcludeMenu');
         Route::post('mobi/edit-user-menu-exclude', 'editUserExcludeMenu');
@@ -471,11 +471,11 @@ Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
         Route::post('mobi/list-user-menu-include', 'userIncludeMenuList');
         Route::post('mobi/dtl-user-menu-include', 'userIncludeMenuDtl');
 
-        Route::post("mobi/user-menu-exclude-include-list","UserMenuListForExcludeInclude");
+        Route::post("mobi/user-menu-exclude-include-list", "UserMenuListForExcludeInclude");
     });
 });
 // Api Gateway Routes for Unauth middleware required= 'apiPermission',
-Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
+Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
     Route::controller(ApiUnauthController::class)->group(function () {
         Route::get('trade/payment-receipt/{id}/{transectionId}', 'unAuthApis');
         Route::get('trade/provisional-certificate/{id}', 'unAuthApis');
@@ -517,7 +517,8 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
         Route::post('water/consumer/details', 'unAuthApis');
         Route::post('water/consumer/get-consumer-bill', 'unAuthApis');
         Route::post('water/citizen/consumer-search', 'unAuthApis');
-        
+        Route::post('water/consumer/demand/generate-payment-receipt', 'unAuthApis');
+
         #advertisement
         Route::post('advertisement/approve-applications', 'unAuthApis');
         Route::post('advertisement/payment-receipt', 'unAuthApis');
@@ -528,7 +529,7 @@ Route::middleware(['apiPermission',"expireBearerToken"])->group(function () {
 });
 
 # Autherisation middleware required= 'apiPermission',
-Route::middleware(['auth:sanctum',"expireBearerToken"])->group(function () {
+Route::middleware(['auth:sanctum', "expireBearerToken"])->group(function () {
     Route::controller(ApiGatewayController::class)->group(function () {
         Route::any('{any}', 'apiGatewayService')->where('any', '.*');
     });
