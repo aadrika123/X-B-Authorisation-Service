@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ThirdPartyController;
 use App\Http\Requests\Auth\AuthorizeRequestUser;
 use App\Http\Requests\Auth\AuthUserRequest;
 use App\Http\Requests\Auth\ChangePassRequest;
@@ -29,8 +30,11 @@ use App\Models\MobiMenu\MenuMobileMaster;
 use App\Models\MobiMenu\UserMenuMobileExclude;
 use App\Models\MobiMenu\UserMenuMobileInclude;
 use App\Models\ModuleMaster;
+use App\Models\OtpRequest;
+use App\Models\TblSmsLog;
 use App\Models\UlbWardMaster;
 use App\Models\Workflows\WfWardUser;
+use Illuminate\Support\Facades\Redis;
 use PDOException;
 
 use function PHPUnit\Framework\throwException;
@@ -70,6 +74,7 @@ class UserController extends Controller
         if ($validated->fails())
             return validationError($validated);
         try {
+            $currentTime = Carbon::now();
             $mWfRoleusermap = new WfRoleusermap();
             if ($req->module == 'dashboard') {
                 if ($req->email <> 'stateadmin@gmail.com')
@@ -88,9 +93,9 @@ class UserController extends Controller
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
                 $users = $this->_mUser->find($user->id);
-                $maAllow = $users->max_login_allow ;
+                $maAllow = $users->max_login_allow;
                 $remain = ($users->tokens->count("id")) - $maAllow;
-                $c= 0;
+                $c = 0;
                 // foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
                 //     if($remain<$key)
                 //     {
@@ -131,6 +136,10 @@ class UserController extends Controller
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 $data['userDetails']['role'] = $role;
+
+                $key = 'last_activity_' . $user->id;
+                Redis::set($key, $currentTime);            // Caching
+
                 return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
             }
 
@@ -138,6 +147,188 @@ class UserController extends Controller
         } catch (PDOException $e) {
             return responseMsg(false, "Oops! It's rush hour and traffic is piling up on this page. Please try again in a short while.", "");
         } catch (Exception  $e) {
+            return responseMsg(false, $e->getMessage(), "");
+        }
+    }
+
+    /**
+     * | UserLogin Send Otp
+     */
+    public function userloginSendOtp(Request $request)
+    {
+        try {
+            $request->validate([
+                'email' => "required|email",
+                'type'  => "nullable|in:User",
+            ]);
+            $mOtpRequest = new OtpRequest();
+            $mTblSmsLog  = new TblSmsLog();
+            $thirdPartController = new ThirdPartyController;
+            $email       =  $request->email;
+
+            $user = $this->_mUser->getUserByEmail($email);
+            if (!$user)
+                throw new Exception("Oops! the given email does not exist");
+            if ($user->suspended == true)
+                throw new Exception("You are not authorized to log in!");
+            if (strlen($user->mobile) != 10)
+                throw new Exception("Mobile no. is invalid.");
+
+            switch ($request->type) {
+                case ('Forgot'):
+                    $otpType = 'Forgot Password';
+                    break;
+
+                case ('Update Mobile'):
+                    $otpType = 'Update Mobile';
+                    break;
+
+                default:
+                    $otpType = 'User Login';
+                    break;
+            }
+
+            $generateOtp = $thirdPartController->generateOtp();
+            $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
+
+            $response = send_sms($user->mobile, $sms, 1707170367857263583);
+            $request->merge([
+                "type"     => $otpType,
+                "mobileNo" => $user->mobile,
+            ]);
+            $mOtpRequest->saveOtp($request, $generateOtp);
+
+            $smsReqs = [
+                "emp_id" => $user->id ?? 0,
+                "ref_id" => $user->id ?? 0,
+                "ref_type" => 'User',
+                "mobile_no" => $user->mobile,
+                "purpose" => "OTP for " . $otpType,
+                "template_id" => 1707170367857263583,
+                "message" => $sms,
+                "response" => $response['status'],
+                "smgid" => $response['msg'],
+                "stampdate" => Carbon::now(),
+            ];
+            $mTblSmsLog->create($smsReqs);
+
+            $last_three_digits = "xxxxxxx". substr($user->mobile, -3);
+            // $last_three_digits = "xxxxxxx". $user->mobile % 10000;
+
+            return responseMsgs(true, "OTP send to your mobile no.", $last_three_digits, "", "01", responseTime(), $request->getMethod(), "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0101", "01", responseTime(), $request->getMethod(), "");
+        }
+    }
+
+    /**
+     * | User Login Verify Otp
+     */
+    public function userloginVerifyOtp(Request $req)
+    {
+        $validated = Validator::make(
+            $req->all(),
+            [
+                'email'    => 'required|email',
+                'type'     => "nullable|in:mobile",
+                'otp'      => "required|digits:6",
+            ]
+        );
+        if ($validated->fails())
+            return validationError($validated);
+        try {
+
+            # model
+            $mOtpMaster     = new OtpRequest();
+            $currentTime    = Carbon::now();
+            $mWfRoleusermap = new WfRoleusermap();
+
+            DB::beginTransaction();
+            
+            $checkOtp = $mOtpMaster->checkOtpViaEmail($req);
+            if (!$checkOtp)
+                throw new Exception("OTP not match!");
+
+            $otpLog = $checkOtp->replicate();
+            $otpLog->setTable('log_otp_requests');
+            $otpLog->id = $checkOtp->id;
+            $otpLog->save();
+
+            $checkOtp->delete();
+            
+            DB::commit();
+
+            $user = $this->_mUser->getUserByEmail($req->email);
+            if (!$user)
+                throw new Exception("Oops! Given email does not exist");
+            if ($user->suspended == true)
+                throw new Exception("You are not authorized to log in!");
+
+            if ($req->module == 'dashboard') {
+                if ($req->email <> 'stateadmin@gmail.com')
+                    throw new Exception("You are not Authorised");
+            }
+
+            if ($req->module == 'userControl') {
+                if ($req->email <> 'praveenkumar@gmail.com')
+                    throw new Exception("You are not Authorised");
+            }
+
+            $users = $this->_mUser->find($user->id);
+            $maAllow = $users->max_login_allow;
+            $remain = ($users->tokens->count("id")) - $maAllow;
+            $c = 0;
+            // foreach($users->tokens->sortBy("id")->values() as  $key =>$token){                  
+            //     if($remain<$key)
+            //     {
+            //         break;
+            //     }
+            //     $c+=1;
+            //     $token->expires_at = Carbon::now();
+            //     $token->update();
+            //     $token->delete();
+            // }
+
+            $tockenDtl = $user->createToken('my-app-token');
+            $ipAddress = getClientIpAddress(); #$req->userAgent()
+            $bousuerInfo = [
+                "latitude" => $req->browserInfo["latitude"] ?? "",
+                "longitude" => $req->browserInfo["longitude"] ?? "",
+                "machine" => $req->browserInfo["machine"] ?? "",
+                "browser_name" => $req->browserInfo["browserName"] ?? $req->userAgent(),
+                "ip" => $ipAddress ?? "",
+            ];
+            DB::table('personal_access_tokens')
+                ->where('id', $tockenDtl->accessToken->id)
+                ->update($bousuerInfo);
+
+            $token = $tockenDtl->plainTextToken;
+            $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
+            // if (empty(collect($menuRoleDetails)->first())) {
+            //     throw new Exception('User has No Roles!');
+            // }
+            $role = collect($menuRoleDetails)->map(function ($value, $key) {
+                $values = $value['roles'];
+                return $values;
+            });
+            $GEO_MAX_AGE = (object)collect($this->_FrontConstains->getConnectionByName("GEO_MAX_AGE")->values())->first();
+            $IS_GEO_ENABLE = (object)collect($this->_FrontConstains->getConnectionByName("IS_GEO_ENABLE")->values())->first();
+            $data['isGeoEnable'] = $IS_GEO_ENABLE ? $IS_GEO_ENABLE->convert_values : false;
+            $data['geoMaxAge'] = $GEO_MAX_AGE ? $GEO_MAX_AGE->convert_values : false;
+            $data['token'] = $token;
+            $data['userDetails'] = $user;
+            $data['userDetails']['role'] = $role;
+
+            $key = 'last_activity_' . $user->id;
+            Redis::set($key, $currentTime);            // Caching
+
+            return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
+
+            throw new Exception("Password Not Matched");
+        } catch (PDOException $e) {
+            return responseMsg(false, "Oops! It's rush hour and traffic is piling up on this page. Please try again in a short while.", "");
+        } catch (Exception  $e) {
+            DB::rollBack();
             return responseMsg(false, $e->getMessage(), "");
         }
     }
@@ -179,10 +370,6 @@ class UserController extends Controller
             return responseMsgs(false, $e->getMessage(), "");
         }
     }
-
-    /**
-     * | ROle addition of ther user
-     */
 
     /**
      * | Update User Details
