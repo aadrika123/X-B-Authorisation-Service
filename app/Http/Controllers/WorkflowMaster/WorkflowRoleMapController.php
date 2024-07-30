@@ -140,6 +140,13 @@ class WorkflowRoleMapController extends Controller
 
             $mreqs = new Request(["workflowId" => $workflowId]);
             $role = $mWfWorkflowrolemap->getRoleByWorkflow($mreqs, $ulbId);
+            // Change role name if workflowId is 15 and role_id is 10
+            $role = collect($role)->map(function ($item) use ($workflowId) {
+                if ($workflowId == 15 && $item->role_id == 10) {
+                    $item->role_name = "EXECUTIVE ENGINEER";
+                }
+                return $item;
+            });
 
             $data['members'] = collect($role);
 
@@ -194,9 +201,9 @@ class WorkflowRoleMapController extends Controller
             'technical_comparison' => $permission->technical_comparison,
             'can_view_technical_comparison' => $permission->can_view_technical_comparison,
             'can_bt_da' => $permission->can_bt_da,
-            'can_assing_propety_no' => $permission->can_assing_propety_no??false,
-            'can_genrate_jahirnama' => $permission->can_genrate_jahirnama??false,
-            'can_update_jahirnama_obj' => $permission->can_update_jahirnama_obj??false,
+            'can_assing_propety_no' => $permission->can_assing_propety_no ?? false,
+            'can_genrate_jahirnama' => $permission->can_genrate_jahirnama ?? false,
+            'can_update_jahirnama_obj' => $permission->can_update_jahirnama_obj ?? false,
         ];
 
         return $data;
