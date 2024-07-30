@@ -483,8 +483,9 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
         Route::post("public-transport/agent/login", "unAuthApis");
         Route::post("public-transport/agent/logout", "unAuthApis");
         Route::get("public-transport/ticket/verify/{id}", "unAuthApis");
-        Route::get("trade/application/dtl-by-id-direct", "unAuthApis");
-        Route::get("trade/application/list-direct", "unAuthApis");
+        // Route::get("trade/application/dtl-by-id-direct", "unAuthApis");
+        // Route::get("trade/application/list-direct", "unAuthApis");
+        Route::get('trade/application/list-direct', 'unAuthApis');
 
 
         # Grievance UnAuth Api
