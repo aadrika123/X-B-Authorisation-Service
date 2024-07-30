@@ -486,6 +486,8 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
          Route::post("trade/application/dtl-by-id-direct", "unAuthApis");
         // Route::get("trade/application/list-direct", "unAuthApis");
         Route::post('trade/application/list-direct', 'unAuthApis');
+        
+        Route::post('trade/application/citizen-by-id-direct', 'unAuthApis');
 
 
         # Grievance UnAuth Api
