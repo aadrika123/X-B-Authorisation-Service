@@ -361,6 +361,7 @@ class UserController extends Controller
             $firstname = explode(" ", $request->name);
             $user->user_name = $firstname[0] . '.' . substr($request->mobile, 0, 3);
             $user->password = Hash::make($firstname[0] . '@' . substr($request->mobile, 7, 3));
+            
             $user->save();
 
             $data['userName'] = $user->user_name;
