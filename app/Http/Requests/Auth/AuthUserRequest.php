@@ -39,7 +39,7 @@ class AuthUserRequest extends FormRequest
             // ],
             'mobile'    => ['required', 'min:10', 'max:10'],
             'altMobile' => ['required', 'min:10', 'max:10'],
-            'moduleType' =>['required']
+            'moduleType' =>['required','integer']
             // 'ulb' => ['required', 'integer'],
             // 'userType' => ['required']
         ];
