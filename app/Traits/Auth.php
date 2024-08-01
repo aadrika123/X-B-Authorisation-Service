@@ -37,6 +37,7 @@ trait Auth
         $signatureRelativePath = 'Uploads/User/Signature';
         $user->name = $request->name;
         $user->mobile = $request->mobile;
+        $user->module_id = $request->moduleType;
         $user->email = $request->email;
         $user->alternate_mobile = $request->altMobile;
         $user->address = $request->address;
