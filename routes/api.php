@@ -526,6 +526,8 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
 
         # IGR
         Route::post('property/user-property-details', 'unAuthApis');
+        #market shop
+        Route::post('market/shop/init-payment', "unAuthApis");
     });
 });
 
