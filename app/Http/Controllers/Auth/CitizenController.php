@@ -286,7 +286,7 @@ class CitizenController extends Controller
             // $id = auth()->user()->id;
             $citizen = ActiveCitizen::where('mobile', $request->mobileNo)
                 ->firstOrFail();
-            $citizen->password = Hash::make($request->password);
+            $citizen->password = Hash::make($request->newPassword);
             $citizen->save();
 
             return responseMsgs(true, "Password changed!", "", "", "01", responseTime(), $request->getMethod(), $request->deviceId);

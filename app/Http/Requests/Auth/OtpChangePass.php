@@ -26,7 +26,7 @@ class OtpChangePass extends FormRequest
     public function rules()
     {
         return [
-            'password' => [
+            'newPassword' => [
                 'required',
                 'min:6',
                 'max:255',
