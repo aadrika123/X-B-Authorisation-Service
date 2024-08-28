@@ -524,6 +524,8 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
         Route::post('water/consumer/get-consumer-bill', 'unAuthApis');
         Route::post('water/citizen/consumer-search', 'unAuthApis');
         Route::post('water/consumer/demand/generate-payment-receipt', 'unAuthApis');
+        Route::post('water/consumer/get-consumer-demandV2', 'unAuthApis');
+        Route::post('water/admin/application/generate-payment-receipt', 'unAuthApis');
 
         #advertisement
         Route::post('advertisement/approve-applications', 'unAuthApis');
