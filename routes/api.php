@@ -483,10 +483,10 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
         Route::post("public-transport/agent/login", "unAuthApis");
         Route::post("public-transport/agent/logout", "unAuthApis");
         Route::get("public-transport/ticket/verify/{id}", "unAuthApis");
-         Route::post("trade/application/dtl-by-id-direct", "unAuthApis");
+        Route::post("trade/application/dtl-by-id-direct", "unAuthApis");
         // Route::get("trade/application/list-direct", "unAuthApis");
         Route::post('trade/application/list-direct', 'unAuthApis');
-        
+
         Route::post('trade/application/citizen-by-id-direct', 'unAuthApis');
 
 
@@ -526,11 +526,12 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
         Route::post('water/consumer/demand/generate-payment-receipt', 'unAuthApis');
         Route::post('water/consumer/get-consumer-demandV2', 'unAuthApis');
         Route::post('water/admin/application/generate-payment-receipt', 'unAuthApis');
-        Route::post('water/noticeDtlConsumer','unAuthApis');
-        Route::post('water/worldline/payment-initiate-demand','unAuthApis');
-        Route::post('water/worldline/payment-response-demand','unAuthApis');
+        Route::post('water/noticeDtlConsumer', 'unAuthApis');
+        Route::post('water/worldline/payment-initiate-demand', 'unAuthApis');
+        Route::post('water/worldline/payment-response-demand', 'unAuthApis');
+        Route::post('water/consumer/get-payment-history', 'unAuthApis');                       // Consumer               // use in consumer part
 
-        
+
 
         #advertisement
         Route::post('advertisement/approve-applications', 'unAuthApis');
