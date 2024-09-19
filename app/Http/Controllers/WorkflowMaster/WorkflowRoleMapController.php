@@ -143,12 +143,12 @@ class WorkflowRoleMapController extends Controller
             // Change role name if workflowId is 15 and role_id is 10
             $role = collect($role)->map(function ($item) use ($workflowId) {
                 // Check if workflowId is 15 or 193 and role_id is 10, set role_name to "EXECUTIVE ENGINEER"
-                if (($workflowId == 15 || $workflowId == 193 || $workflowId == 204) && $item->role_id == 10) {
+                if (($workflowId == 15 || $workflowId == 193 || $workflowId == 204 || $workflowId == 205 || $workflowId == 206) && $item->role_id == 10) {
                     $item->role_name = "EXECUTIVE ENGINEER";
                 }
 
                 // Check if workflowId is 15 or 193 and role_id is 14, set role_name to "DEPUTY ENGINEER"
-                if (($workflowId == 15 || $workflowId == 193 || $workflowId == 204) && $item->role_id == 14) {
+                if (($workflowId == 15 || $workflowId == 193 || $workflowId == 204 || $workflowId == 205 || $workflowId == 206) && $item->role_id == 14) {
                     $item->role_name = "DEPUTY ENGINEER";
                 }
 
