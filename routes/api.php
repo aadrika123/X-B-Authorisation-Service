@@ -529,6 +529,7 @@ Route::middleware(['apiPermission', "expireBearerToken"])->group(function () {
         Route::post('water/noticeDtlConsumer', 'unAuthApis');
         Route::post('water/worldline/payment-initiate-demand', 'unAuthApis');
         Route::post('water/worldline/payment-response-demand', 'unAuthApis');
+        Route::post('water/approve-application/get-by-id-v1', 'unAuthApis');
         Route::post('water/consumer/get-payment-history', 'unAuthApis');                       // Consumer               // use in consumer part
 
 
