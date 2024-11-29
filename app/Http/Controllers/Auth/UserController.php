@@ -192,7 +192,7 @@ class UserController extends Controller
             $sms         = "OTP for " . $otpType . " at Akola Municipal Corporation's portal is " . $generateOtp . ". This OTP is valid for 10 minutes.";
 
             $response = send_sms($user->mobile, $sms, 1707170367857263583);
-            $request->merge([
+            $request->merge([   
                 "type"     => $otpType,
                 "mobileNo" => $user->mobile,
             ]);
